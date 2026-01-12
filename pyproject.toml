@@ -1,6 +1,6 @@
 [project]
-name = "func-store-core"
-version = "2.0.0"
+name = "liberte"
+version = "0.1.6"
 description = "Modular aiogram bot core"
 requires-python = ">=3.8"
 
@@ -11,8 +11,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = [
+    "pytest",
+    "black",
+    "flake8", 
+    "pycodestyle", 
+    "pydocstyle"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [project.scripts]
 cli = "core.cli:main"
 bot = "app.main:main"
+
+
+

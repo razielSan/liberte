@@ -4,10 +4,10 @@ import sys
 
 from core.scripts.bot.create_module import creates_new_modules_via_the_command_line
 from core.scripts.bot.remove_module import remove_module
-from core.paths.paths import APP_DIR
+from core.paths.paths import SRC_DIR
 
 
-MODULES_ROOT: Path = APP_DIR / "bot" / "modules"
+# MODULES_ROOT: Path = APP_DIR / "bot" / "modules"
 
 
 def main() -> None:
@@ -22,7 +22,8 @@ def main() -> None:
 
     if len(list_sys_argv) < 2:
         print(
-            "Использование:\n\npython manage.py add-module <путь>\npython manage.py remove-module <путь>"
+            "Использование:\n\npython manage.py add-module"
+            " <name module>\npython manage.py remove-module <name module>"
         )
         sys.exit()
 
@@ -30,16 +31,16 @@ def main() -> None:
     if command == "add-module":
         if len(list_sys_argv) < 3:
             print(
-                "Укажите путь до модуля.Дочерний модуль должен быть "
-                "разделен 'childes'\ncli add-module <путь>"
-                "\ncli add-module test/childes/data"
+                "Укажите имя модуля.Дочерний модуль должен быть "
+                "разделен '.'\ncli add-module <name module>"
+                "\ncli add-module test.data.test"
             )
             exit()
         else:
             print("Идет создание модулей...")
             creates_new_modules_via_the_command_line(
-                list_path_modules=list_sys_argv[2:],
-                module_path=MODULES_ROOT,
+                root_dir=SRC_DIR,
+                module_name=list_sys_argv[2],
                 root_package="app.bot.modules",
             )
     elif command == "remove-module":
@@ -54,14 +55,15 @@ def main() -> None:
             print("За раз можно удалить только один модуль\ncli remove-module <путь>")
             exit()
         else:
-            LOG_PATH: Path = APP_DIR / "logs" / "bot"
-            TEMP_PATH: Path = APP_DIR / "bot" / "temp"
-            MODULES_PATH: Path = MODULES_ROOT
+            # LOG_PATH: Path = APP_DIR / "logs" / "bot"
+            # TEMP_PATH: Path = APP_DIR / "bot" / "temp"
+            # MODULES_PATH: Path = MODULES_ROOT
             remove_module(
-                path_name=list_sys_argv[2],
-                log_path=LOG_PATH,
-                temp_path=TEMP_PATH,
-                modules_path=MODULES_PATH,
+                name_module=list_sys_argv[2],
+                log_path=1,
+                temp_path=2,
+                root_package="app.bot.modules",
+                root_dir=SRC_DIR,
             )
     elif command == "help":
         print(
