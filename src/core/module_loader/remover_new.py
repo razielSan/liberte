@@ -47,6 +47,13 @@ def remove_module(
             f"Вы точно хотите удалить модуль - {path_name}\n1. "
             "Да - Нажмите 'Enter'\n2. Нет - Отправьте любой символ"
         )
+        
+    # 2. Удаляем temp папки
+    print(path_name)
+    temp_folder: Path = temp_path / path_name
+    if temp_folder.exists():
+        shutil.rmtree(temp_folder)
+        print(f"Удалена папка {temp_folder} и ее дочерние папки")
 
     # 1. Удаляем модуль
     if not result:
@@ -56,11 +63,7 @@ def remove_module(
         print(f"Удаление модуля {path_name} отменено")
         return
 
-    # # 2. Удаляем temp папки
-    # temp_folder: Path = temp_path / path_name
-    # if temp_folder.exists():
-    #     shutil.rmtree(temp_folder)
-    #     print(f"Удалена папка {temp_folder} и ее дочерние папки")
+
     # # 3. Улаляем логи
     # log_path: Path = log_path / path_name
     # if log_path.exists():
