@@ -65,7 +65,7 @@ get_keyboards_menu_buttons = get_total_buttons_inline_kb(
 """,
     "logging.py": """from functools import lru_cache
 
-from core.utils.logging import get_loggers
+from core.logging.logging import get_loggers
 from app.bot.core.init_logging import logging_data
 from core.response.response_data import LoggingData
 
@@ -80,7 +80,7 @@ def get_log() -> LoggingData:
     "extensions.py": "# Plug-in extensions are below",
 }
 
-TEMPLATATE_DIRS: List[str] = [
+TEMPLATE_DIRS: List[str] = [
     "api",
     "fsm",
     "services",
