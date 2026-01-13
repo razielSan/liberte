@@ -1,20 +1,33 @@
+from typing import List, Dict
+
 from aiogram import Dispatcher
+from core.response.modules_loader import ModuleInfo
 
 
 def register_module(
     dp: Dispatcher,
-    modules,
+    modules: List[ModuleInfo],
 ) -> None:
-    root = sorted([m for m in modules if m.is_root], key=lambda m: m.root)
-    children = sorted(
+    """
+    Подключает к диспетчеру переданные роутеры.
+
+
+    Args:
+        dp (Dispatcher): Диспетчер aiogram
+        modules (List[ModuleInfo]): Список содержащий в себе обьект класса ModuleInfo 
+        для подключения router
+    """
+
+    root: List[ModuleInfo] = sorted([m for m in modules if m.is_root], key=lambda m: m.root)
+    children: List[ModuleInfo] = sorted(
         [m for m in modules if not m.is_root], key=lambda m: m.module_depth
     )
     children = sorted(
         children,
         key=lambda m: m.parent,
-    )
+    ) 
 
-    root_map = {}
+    root_map: Dict = {}
 
     for mod in root:
         dp.include_router(router=mod.router.router)
