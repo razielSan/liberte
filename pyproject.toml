@@ -28,6 +28,3 @@ where = ["src"]
 [project.scripts]
 cli = "core.cli:main"
 bot = "app.main:main"
-
-
-
