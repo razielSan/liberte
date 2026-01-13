@@ -1,0 +1,20 @@
+from typing import List, Optional
+from pathlib import Path
+
+from aiogram.types import BotCommand
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class BotSettings(BaseSettings):
+    """Общие настройки бота."""
+
+    BOT_NAME: str = "bot"
+
+    TOKEN: Optional[str] = None
+    LIST_BOT_COMMANDS: List[BotCommand] = [
+        BotCommand(command="start", description="Меню бота")
+    ]
+
+    model_config: SettingsConfigDict = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parent / ".env", extra="ignore"
+    )
