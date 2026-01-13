@@ -4,7 +4,6 @@
 # from aiogram import Dispatcher
 
 # from core.utils.logging import setup_bot_logging, init_loggers
-# from core.utils.filesistem import ensure_directories
 # from app.app_utils.keyboards import get_total_buttons_reply_kb
 # from core.utils.logging import get_loggers
 # from core.response.response_data import LoggingData
@@ -18,9 +17,15 @@
 # from app.bot.core.middleware.errors import RouterErrorMiddleware
 # from app.core.paths import APP_DIR
 
+from pathlib import Path
+from typing import List
+
 from app.bot.core.bot import dp
-from core.module_loader.importlib_loader import load_modules
+from app.bot.core.paths import bot_path
+from core.module_loader.loader import load_modules
+from core.utils.filesistem import ensure_directories
 from core.module_loader.register import register_module
+
 
 from aiogram import Dispatcher
 
@@ -31,6 +36,19 @@ async def setup_bot() -> Dispatcher:
     array_modules = load_modules(root_package="app.bot.modules")
 
     register_module(dp=dp, modules=array_modules)
+
+    list_path_to_temp_folder = [
+        bot_path.TEMP_DIR / Path(m.settings.settings.NAME_FOR_TEMP_FOLDER)
+        for m in array_modules
+    ]  # получаем список из путей для папки temp
+
+    ensure_directories(
+        bot_path.TEMP_DIR,
+        bot_path.STATIC_DIR,
+        *list_path_to_temp_folder,
+    )  # создает нужные пути
+
+    root_modules = [m.router.router for m in array_modules if m.is_root]
 
     # modules_path: Path = APP_DIR / "bot" / "modules"
 
@@ -53,9 +71,9 @@ async def setup_bot() -> Dispatcher:
     #     quantity_button=2,
     # )
 
-    # modules_settings: List[str] = [
-    #     model.settings.SERVICE_NAME for model in root_modules
-    # ]  # список из имен роутеров
+    modules_settings: List[str] = [
+        m.settings.settings.SERVICE_NAME for m in array_modules
+    ]  # список из имен роутеров
 
     # # Получаем список из имен для папки temp
     # list_temp_folder_name: List[str] = get_child_modules_settings_temp_folder(
@@ -68,12 +86,6 @@ async def setup_bot() -> Dispatcher:
     # list_path_to_temp_folder: List[Path] = [
     #     bot_settings.PATH_BOT_TEMP_FOLDER / name for name in list_temp_folder_name
     # ]
-
-    # ensure_directories(
-    #     bot_settings.PATH_BOT_TEMP_FOLDER,
-    #     bot_settings.PATH_BOT_STATIC_FOLDER,
-    #     *list_path_to_temp_folder,
-    # )  # создает нужные пути
 
     # init_loggers(
     #     bot_name=bot_settings.BOT_NAME,
