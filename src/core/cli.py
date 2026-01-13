@@ -20,8 +20,9 @@ def main() -> None:
 
     if len(list_sys_argv) < 2:
         print(
-            "Использование:\n\npython manage.py add-module"
-            " <name module>\npython manage.py remove-module <name module>"
+            "-----\nИспользование:\n\ncli add-module "
+            "<name module> - Создание модуля\n"
+            "cli remove-module <name module> - Удаление модуля\n-----"
         )
         sys.exit()
 
@@ -32,9 +33,8 @@ def main() -> None:
     if command == "add-module":
         if len(list_sys_argv) < 3:
             print(
-                "Укажите имя модуля.Дочерний модуль должен быть "
-                "разделен '.'\ncli add-module <name module>"
-                "\ncli add-module test.data.test"
+                "-----\nУкажите имя модуля.\n\nДочерний модуль должен быть "
+                "разделен '.'\n\nПример:\nсli add-module test.data.test\n-----"
             )
             exit()
         else:
@@ -47,13 +47,16 @@ def main() -> None:
     elif command == "remove-module":
         if len(list_sys_argv) < 3:
             print(
-                "Укажите путь до модуля.Дочерний модуль должен быть "
-                "разделен 'childes'\ncli add-module <путь>"
-                "\ncli add-module test/childes/data"
+                "-----\nУкажите путь до модуля.\n\nДочерний модуль должен быть "
+                "разделен '.'\n\nПример:\n"
+                "\ncli remove-module test.data\n-----"
             )
             exit()
         elif len(list_sys_argv) >= 4:
-            print("За раз можно удалить только один модуль\ncli remove-module <путь>")
+            print(
+                "-----\nЗа раз можно удалить только один модуль\n\n"
+                "Пример:\ncli remove-module test.test\n-----"
+            )
             exit()
         else:
 
