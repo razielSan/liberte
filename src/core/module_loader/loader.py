@@ -5,12 +5,13 @@ from typing import List
 from types import ModuleType
 
 from core.response.modules_loader import ModuleInfo
+from core.constants import DEFAULT_CHILD_SEPARATOR
 
 
 def get_root_and_parent(
     module_name: str,
     root_package: str,
-    separator: str = "childes",
+    separator: str = DEFAULT_CHILD_SEPARATOR,
 ) -> List[str]:
     """
     Проверка имени модуля на родительский и дочерний.
@@ -42,7 +43,7 @@ def get_root_and_parent(
 
 def load_modules(
     root_package: str,
-    separator: str = "childes",
+    separator: str = DEFAULT_CHILD_SEPARATOR,
 ) -> List[ModuleInfo]:
     """
     Проходится по модулям и возвращает обьект ModuleInfo c собранными
