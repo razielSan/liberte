@@ -37,8 +37,14 @@ def main() -> None:
                 "разделен '.'\n\nПример:\nсli add-module test.data.test\n-----"
             )
             exit()
+        elif len(list_sys_argv) >= 4:
+            print(
+                "-----\nЗа раз можно создать только один модуль\n\n"
+                "Пример:\ncli add-module test.test\n-----"
+            )
+            exit()
         else:
-            print("Идет создание модулей...")
+            print("Идет создание модуля...")
             creates_new_modules_via_the_command_line(
                 root_dir=SRC_DIR,
                 module_name=list_sys_argv[2],
@@ -69,11 +75,13 @@ def main() -> None:
             )
     elif command == "help":
         print(
-            """Доступные команды:
+            """-----
+Доступные команды:
               
-cli add-module <путь> <путь> - Создание модулей
-cli remove-module <путь> - Удаление модуля 
+cli add-module <name_module> - Создание модуля
+cli remove-module <name_module> - Удаление модуля
+----
 """
         )
     else:
-        print("Неизвестная команда\n\npython manage.py help - Основные команды")
+        print("Неизвестная команда\n\ncli help - Основные команды")
