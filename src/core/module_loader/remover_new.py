@@ -2,6 +2,8 @@ import shutil
 from pathlib import Path
 import logging
 
+from core.constants import DEFAULT_CHILD_SEPARATOR
+
 
 def remove_module(
     name_module: str,
@@ -11,6 +13,7 @@ def remove_module(
     root_dir: Path,
     close_loggers: bool = True,
     tests: bool = False,
+    separator: str = DEFAULT_CHILD_SEPARATOR
 ):
     """
     Удаляет модуль и его дочерние модули, temp папку связанную с модулями и log модуля если родительский.
@@ -32,7 +35,7 @@ def remove_module(
     if close_loggers:
         logging.shutdown()
 
-    path_name = name_module.replace(".", "/childes/")
+    path_name = name_module.replace(".", f"/{separator}/")
 
     root_package = Path(root_package.replace(".", "/"))
     modules_path: Path = root_dir / root_package / path_name
