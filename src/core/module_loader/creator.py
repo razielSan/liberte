@@ -4,6 +4,7 @@ from typing import Dict, List
 from pathlib import Path
 
 from core.response.response_data import ResponseData
+from core.constants import DEFAULT_CHILD_SEPARATOR
 from core.module_loader.templates import TEMPLATE_DIRS, TEMPLATE_FILES
 
 
@@ -21,7 +22,7 @@ def create_module(
     root_dir: Path,
     root_package: str,
     module_name: str,
-    separator: str = "childes",
+    separator: str = DEFAULT_CHILD_SEPARATOR,
     template_dirs: Dict = TEMPLATE_DIRS,
     template_files: Dict = TEMPLATE_FILES,
 ) -> ResponseData:
@@ -124,7 +125,7 @@ def creates_new_modules_via_the_command_line(
     root_package: str,
     template_dirs: Dict = TEMPLATE_DIRS,
     template_files: Dict = TEMPLATE_FILES,
-    separator: str = "childes",
+    separator: str = DEFAULT_CHILD_SEPARATOR,
 ) -> None:
     """
     Создает новые модули для бота через командную строку.
