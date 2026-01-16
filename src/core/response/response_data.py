@@ -30,6 +30,7 @@ class LoggingData:
     info_logger: Logger
     warning_logger: Logger
     error_logger: Logger
+    critical_logger: Logger
     router_name: str
 
 
