@@ -1,30 +1,13 @@
-# from typing import List
-# from pathlib import Path
-
-# from aiogram import Dispatcher
-
-# from core.utils.logging import setup_bot_logging, init_loggers
-# from app.app_utils.keyboards import get_total_buttons_reply_kb
-# from core.utils.logging import get_loggers
-# from core.response.response_data import LoggingData
-# from core.module_loader.loader import (
-#     get_child_modules_settings_temp_folder,
-#     load_modules,
-# )
-# from app.settings.init_logging import app_settings
-# from core.response.modules_loader import ModuleInfo
-# from app.bot.core.init_logging import logging_data, bot_settings, bot_error_logger
-# from app.bot.core.middleware.errors import RouterErrorMiddleware
-# from app.core.paths import APP_DIR
-
 from pathlib import Path
 from typing import List
 
 from app.bot.core.bot import dp
 from app.bot.core.paths import bot_path
+from app.bot.settings import settings
 from core.module_loader.loader import load_modules
 from core.utils.filesistem import ensure_directories
 from core.module_loader.register import register_module
+from core.logging.api import get_loggers
 
 
 from aiogram import Dispatcher
@@ -33,10 +16,14 @@ from aiogram import Dispatcher
 async def setup_bot() -> Dispatcher:
     """Подключает все необходимые компоненты для работы бота."""
 
+    logging_data = get_loggers(name=settings.SERVICE_NAME)
+
     array_modules = load_modules(root_package="app.bot.modules")
-
-    register_module(dp=dp, modules=array_modules)
-
+    register_module(
+        dp=dp,
+        modules=array_modules,
+        logging_data=logging_data,
+    )
     list_path_to_temp_folder = [
         bot_path.TEMP_DIR / Path(m.settings.settings.NAME_FOR_TEMP_FOLDER)
         for m in array_modules
@@ -49,6 +36,10 @@ async def setup_bot() -> Dispatcher:
     )  # создает нужные пути
 
     root_modules = [m.router.router for m in array_modules if m.is_root]
+
+    modules_settings: List[str] = [
+        m.settings.settings.SERVICE_NAME for m in array_modules
+    ]  # список из имен роутеров
 
     # modules_path: Path = APP_DIR / "bot" / "modules"
 
@@ -70,10 +61,6 @@ async def setup_bot() -> Dispatcher:
     #     ],
     #     quantity_button=2,
     # )
-
-    modules_settings: List[str] = [
-        m.settings.settings.SERVICE_NAME for m in array_modules
-    ]  # список из имен роутеров
 
     # # Получаем список из имен для папки temp
     # list_temp_folder_name: List[str] = get_child_modules_settings_temp_folder(
