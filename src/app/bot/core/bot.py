@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher
-from app.bot.core.init_logging import bot_settings
+from app.bot.settings import settings
 
-telegram_bot: Bot = Bot(token=bot_settings.TOKEN)
+telegram_bot: Bot = Bot(token=settings.TOKEN)
 dp: Dispatcher = Dispatcher()
