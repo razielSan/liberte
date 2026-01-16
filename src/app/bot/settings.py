@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class BotSettings(BaseSettings):
     """Общие настройки бота."""
 
-    BOT_NAME: str = "bot"
+    SERVICE_NAME: str = "bot"
 
     TOKEN: Optional[str] = None
     LIST_BOT_COMMANDS: List[BotCommand] = [
@@ -18,3 +18,6 @@ class BotSettings(BaseSettings):
     model_config: SettingsConfigDict = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent / ".env", extra="ignore"
     )
+
+
+settings = BotSettings()
