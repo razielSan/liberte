@@ -1,39 +1,11 @@
-from aiogram import Router, F, Bot, Dispatcher
+from aiogram import Router, F, Bot
 from aiogram.types import Message
 from aiogram.filters.state import StateFilter
 
 from core.response.messages import messages
-from app.bot.core.init_logging import bot_info_logger, bot_warning_logger
 
 
 router: Router = Router(name="main")
-
-
-def register(
-    dp: Dispatcher,
-    parent_router: bool,
-    root_router: object,
-) -> None:
-    if not parent_router:  # если роутер корневой
-        # Проверка на то что этот роутер ни к кому не подключен
-        if getattr(router, "parent_router", None) is None:
-            dp.include_router(router)
-            bot_info_logger.info(f"\n[Auto] Root router inculde into dp: {router}")
-        else:
-            bot_warning_logger.warning(
-                f"\n[Auto] Root router already attached: {router}"
-            )
-
-    else:
-        if getattr(router, "parent_router", None) is None:
-            root_router.include_router(router)
-            bot_info_logger.info(
-                f"\n[Auto] Child router inculded into {root_router}: {router}"
-            )
-        else:
-            bot_warning_logger.warning(
-                f"\n[Auto] Child router already attached: {router}"
-            )
 
 
 @router.message(
