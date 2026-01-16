@@ -5,15 +5,17 @@ import sys
 from core.scripts.bot.create_module import creates_new_modules_via_the_command_line
 from core.scripts.bot.remove_module import remove_module
 from core.paths.paths import SRC_DIR
-from core.context import load_bot_paths
+from core.context.context import load_bot_paths, load_bot_root_modules_settings
+from core.context.context import create_app_context
+from core.context.runtime import ContextRuntime
 
 
 def main() -> None:
     """
     Команды для командной строки.
 
-    cli add-module <путь>- Создание модулей
-    cli remove-module <путь> - Удаление модуля
+    cli add-module <имя модуля>- Создание модулей
+    cli remove-module <имя модуля> - Удаление модуля
     """
 
     list_sys_argv: List[str] = sys.argv
