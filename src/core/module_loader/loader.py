@@ -72,7 +72,7 @@ def load_modules(
             None
         
     """
-
+    
     package: ModuleType = importlib.import_module(root_package)
     modules = defaultdict(dict)
 
