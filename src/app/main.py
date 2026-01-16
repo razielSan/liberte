@@ -2,9 +2,13 @@ import asyncio
 import signal
 import sys
 
+from core.logging.api import get_loggers
+from app.settings import settings as app_settings
 from app.bot.main import run_bot
 from app.bot.core.bot import telegram_bot
-from app.core.init_logging import root_warning_logger, root_info_logger
+from core.context.context import create_app_context
+from core.context.runtime import ContextRuntime
+
 
 # Меняет тип event_loop для виндоус чтобы при нажатии ctl+c не было ошибки KeyboardInterrupt
 if sys.platform == "win32":
@@ -14,9 +18,19 @@ if sys.platform == "win32":
 def main() -> None:
     """Синхронная точка входа для console_scripts."""
     try:
+        try:
+            ctx = create_app_context()
+            ContextRuntime.init(ctx)
+
+        except Exception as err:
+            print("FATAL: Ошибка при создание логов")
+            print(err)
+            sys.exit()
+
+        logging_data = get_loggers(name=app_settings.SERVICE_NAME)
         asyncio.run(async_main())
     except KeyboardInterrupt:
-        root_info_logger.info("Приложение остановлено вручную (Ctrl+C)")
+        logging_data.info_logger.info("Приложение остановлено вручную (Ctrl+C)")
 
 
 async def async_main() -> None:
@@ -29,6 +43,9 @@ async def async_main() -> None:
 
 async def _run_unix():
     """Запуск приложения на unix-системе."""
+
+    logging_data = get_loggers(name=app_settings.SERVICE_NAME)
+
     # корректно завершает работу на сервере
     loop = asyncio.get_event_loop()
     stop_event = asyncio.Event()
@@ -36,28 +53,30 @@ async def _run_unix():
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, stop_event.set)
 
-    root_info_logger.info("Приложение запущен(Unix mode)")
+    logging_data.info_logger.info("Приложение запущен(Unix mode)")
     await asyncio.gather(run_bot(), stop_event.wait())
 
 
 async def _run_windows():
     """Запуск приложения на windows."""
+
+    logging_data = get_loggers(name=app_settings.SERVICE_NAME)
     try:
         # Запускам бота
-        root_info_logger.info("Приложение запущено (Windows mode)")
+        logging_data.info_logger.info("Приложение запущено (Windows mode)")
         await run_bot()
-    except Exception:
-        pass
+    except Exception as err:
+        print(err)
     finally:
         # Завершаем работy для windows
-        root_info_logger.info("Приложение завершает работу")
+        logging_data.info_logger.info("Приложение завершает работу")
         try:
             if getattr(telegram_bot, "session", None):
                 await telegram_bot.session.close()  # аккуратно закрываем сессию
         except RuntimeError:
-            root_warning_logger.warning(
+            logging_data.warning_logger.warning(
                 "Сессия уже была закрыта или event loop завершен"
             )
         except Exception as err:
-            root_warning_logger.warning(f"Ошибка при закрытии сессии: {err}")
-        root_info_logger.info("Приложение завершило работу корректно")
+            logging_data.warning_logger.warning(f"Ошибка при закрытии сессии: {err}")
+        logging_data.info_logger.info("Приложение завершило работу корректно")
