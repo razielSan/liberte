@@ -1,1 +1,1 @@
-from core.module_loader.remover_new import remove_module
+from core.module_loader.remover import remove_module
