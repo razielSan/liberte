@@ -2,37 +2,55 @@ import shutil
 from pathlib import Path
 import logging
 
+from core.constants import DEFAULT_CHILD_SEPARATOR
+
 
 def remove_module(
-    path_name: str,
+    name_module: str,
     log_path: Path,
     temp_path: Path,
-    modules_path: Path,
+    root_package: str,
+    root_dir: Path,
     close_loggers: bool = True,
     tests: bool = False,
+    separator: str = DEFAULT_CHILD_SEPARATOR,
 ):
     """
-    Удаляет модуль и его дочерние модули, temp папку связанную с модулями и log модуля если родительский.
+    Удаляет модуль и его дочерние модули, temp папку связанную с модулями и log модуля если родительский.А
 
     Args:
-        path_name (str): Путь от папки с модулем до удаляемого модуля
+        name_module (str): Имя удаляемого модуля.Дочерние модули разделяются "."
 
         Пример:
-        video/childes/name
+        test.data
 
-        log_path (Path): путь до папки с логами
-        temp_path (Path): путь до temp папки
-        modules_path (Path): путь до папки с модулями
-        close_loggers (bool): флаг для закрытия логгеров.По умолчанию True
-        tests (bool): флаг для проверки функции в тестах
+        log_path (Path): Путь до папки с логами
+        temp_path (Path): Путь до папки temp
+        root_package (str): Путь для модуля, от корневой директории до папки с модулями
+
+        Пример:
+        app.bot.moduels
+
+        root_dir (Path): Путь до корневой директории
+
+        close_loggers (bool, optional): Проверка на закрытие логов. По умолчанию True
+        tests (bool, optional): Убирает вопрос что пользователь точно хочет удалить
+        модуль. По умолчанию False
+
+        separator: (str): Имя для связывыния дочернего и родительского модуля
+
+        Имя папки для хранения дочерних модулей, формирования имен в settings,
+        формирования имени роутера
     """
 
     # Закрываем логи, если есть открытые
     if close_loggers:
         logging.shutdown()
 
-    modules_path: Path = modules_path / path_name
+    path_name = name_module.replace(".", f"/{separator}/")
 
+    root_package = Path(root_package.replace(".", "/"))
+    modules_path: Path = root_dir / root_package / path_name
     if not modules_path.exists():
         print(f"Модуль {path_name} не найден")
         return
@@ -43,7 +61,6 @@ def remove_module(
             f"Вы точно хотите удалить модуль - {path_name}\n1. "
             "Да - Нажмите 'Enter'\n2. Нет - Отправьте любой символ"
         )
-
     # 1. Удаляем модуль
     if not result:
         shutil.rmtree(modules_path)
@@ -57,6 +74,7 @@ def remove_module(
     if temp_folder.exists():
         shutil.rmtree(temp_folder)
         print(f"Удалена папка {temp_folder} и ее дочерние папки")
+
     # 3. Улаляем логи
     log_path: Path = log_path / path_name
     if log_path.exists():
