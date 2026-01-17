@@ -1,13 +1,10 @@
 from typing import List
-from pathlib import Path
 import sys
 
 from core.scripts.bot.create_module import creates_new_modules_via_the_command_line
 from core.scripts.bot.remove_module import remove_module
 from core.paths.paths import SRC_DIR
-from core.context.context import load_bot_paths, load_bot_root_modules_settings
-from core.context.context import create_app_context
-from core.context.runtime import ContextRuntime
+from core.context.context import load_bot_paths
 
 
 def main() -> None:
@@ -70,7 +67,7 @@ def main() -> None:
 
             remove_module(
                 name_module=list_sys_argv[2],
-                log_path=1,
+                log_path=bot_path.LOG_DIR,
                 temp_path=bot_path.TEMP_DIR,
                 root_package="app.bot.modules",
                 root_dir=SRC_DIR,
