@@ -6,7 +6,7 @@ import pkgutil
 from types import ModuleType
 
 
-from core.constants import DEFAULT_CHILD_SEPARATOR
+from core.constants import DEFAULT_CHILD_SEPARATOR, DEFAULT_BOT_MODULES_ROOT
 from core.logging.factory import LoggerFactory
 from core.logging.storage import storage
 from core.logging.runtime import LoggerRuntime
@@ -42,7 +42,9 @@ class ModuleSettings(Protocol):
     MENU_REPLY_TEXT: str
     MENU_CALLBACK_TEXT: str
     MENU_CALLBACK_DATA: str
+    NAME_FOR_LOG_FOLDER: str
     NAME_FOR_TEMP_FOLDER: str
+    ROOT_PACKAGE: str
 
 
 @dataclass
@@ -171,7 +173,9 @@ def load_bot_root_modules_settings(
             - MENU_REPLY_TEXT (str)
             - MENU_CALLBACK_TEXT (str)
             - MENU_CALLBACK_DATA (str)
+            - NAME_FOR_LOG_FOLDER (str)
             - NAME_FOR_TEMP_FOLDER: (str)
+            - ROOT_PACKAGE: (str)
 
     """
     package: ModuleType = importlib.import_module(root_package)  # получаем модуль
@@ -260,14 +264,16 @@ def init_logging(
     return LoggerRuntime
 
 
-def create_app_context() -> AppContext:
+def create_app_context(
+    bot_modules_root: str = DEFAULT_BOT_MODULES_ROOT,
+) -> AppContext:
     """Создает контекст приложения."""
 
     app_settings = load_settings("app.settings")
     bot_settings = load_settings("app.bot.settings")
-    bot_path = load_bot_paths("app.bot.core.paths")
     app_path = load_app_paths("app.core.paths")
-    modules_settings = load_bot_root_modules_settings("app.bot.modules")
+    bot_path = load_bot_paths("app.bot.core.paths")
+    modules_settings = load_bot_root_modules_settings(DEFAULT_BOT_MODULES_ROOT)
 
     loggers = init_logging(
         app_path=app_path,
