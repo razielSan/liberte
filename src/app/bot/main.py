@@ -11,13 +11,14 @@ async def run_bot() -> None:
     # Встаем в try/except чтобы отловить все что не попало в middleware
     try:
 
-        dp = await setup_bot()
         logging_data = get_loggers(name=settings.SERVICE_NAME)
+        get_main_keyboards, dp = await setup_bot()
 
         # Создаем глобальную сессию для всего бота. Будет доступ в роутерах через
         # название указанное ниже
         async with aiohttp.ClientSession() as session:
             dp["session"] = session
+            dp["get_main_keyboards"] = get_main_keyboards
             logging_data.info_logger.info("bot запущен")
             await dp.start_polling(telegram_bot)
 
