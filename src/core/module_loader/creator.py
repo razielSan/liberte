@@ -59,10 +59,10 @@ def create_module(
         test.test
 
         separator: (str): Имя для связывыния дочернего и родительского модуля
-        
-        Имя папки для хранения дочерних модулей, формирования имен в settings, 
+
+        Имя папки для хранения дочерних модулей, формирования имен в settings,
         формирования имени роутера
-        
+
         template_dirs: (Dict): Шаблон с директориями для создания модуля
         template_files: (Dict): Шаблон с файлами для создания модуля
 
@@ -96,10 +96,12 @@ def create_module(
 
         module_path.mkdir(parents=True, exist_ok=True)
         for filename, content in template_files.items():
-            filepath = module_path / filename
-            temp_path = full_name.replace(".", "/")
+            filepath: Path = module_path / filename
+            temp_path: str = full_name.replace(".", "/")
+            log_name: str = full_name.split(".")[0]
             if not filepath.exists():
                 content: str = generate_content(
+                    log_name=log_name,
                     template=content,
                     name=full_name,
                     temp_path=temp_path,
