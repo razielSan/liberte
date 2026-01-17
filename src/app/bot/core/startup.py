@@ -3,7 +3,10 @@ from typing import List
 
 from app.bot.core.bot import dp
 from app.bot.core.paths import bot_path
+from app.bot.core.bot import telegram_bot
 from app.bot.settings import settings
+from app.bot.core.middleware.errors import RouterErrorMiddleware
+from app.app_utils.keyboards import get_total_buttons_reply_kb
 from core.module_loader.loader import load_modules
 from core.utils.filesistem import ensure_directories
 from core.module_loader.register import register_module
@@ -16,14 +19,16 @@ from aiogram import Dispatcher
 async def setup_bot() -> Dispatcher:
     """Подключает все необходимые компоненты для работы бота."""
 
-    logging_data = get_loggers(name=settings.SERVICE_NAME)
+    logging_bot = get_loggers(name=settings.SERVICE_NAME)
 
     array_modules = load_modules(root_package="app.bot.modules")
+
     register_module(
         dp=dp,
         modules=array_modules,
-        logging_data=logging_data,
-    )
+        logging_data=logging_bot,
+    )  # регестрируем модули
+
     list_path_to_temp_folder = [
         bot_path.TEMP_DIR / Path(m.settings.settings.NAME_FOR_TEMP_FOLDER)
         for m in array_modules
@@ -35,80 +40,44 @@ async def setup_bot() -> Dispatcher:
         *list_path_to_temp_folder,
     )  # создает нужные пути
 
-    root_modules = [m.router.router for m in array_modules if m.is_root]
+    root_modules = [m for m in array_modules if m.is_root]
 
-    modules_settings: List[str] = [
-        m.settings.settings.SERVICE_NAME for m in array_modules
-    ]  # список из имен роутеров
+    # Формируем клавиатуру для главного меню
+    settings_modules = [m.settings.settings for m in array_modules]
+    get_main_keyboards = get_total_buttons_reply_kb(
+        list_text=[
+            settings.MENU_REPLY_TEXT
+            for settings in settings_modules
+            if settings.SERVICE_NAME != "main"
+        ],
+        quantity_button=2,
+    )
 
-    # modules_path: Path = APP_DIR / "bot" / "modules"
+    await telegram_bot.set_my_commands(
+        commands=settings.LIST_BOT_COMMANDS  # Добавляет команды боту
+    )  # Добавляет команды боту
+    await telegram_bot.delete_webhook(
+        drop_pending_updates=True
+    )  # Игнорирует все присланные сообщение пока бот не работал
 
-    # array_modules: List[ModuleInfo] = load_modules(
-    #     dp=dp,
-    #     modules_path=modules_path,
-    #     error_logger=bot_error_logger,
-    #     root_package="app.bot.modules",
-    # )
-    # # Список корневых модулей
-    # root_modules: List[ModuleInfo] = [module for module in array_modules if module.root]
+    for model in root_modules:
+        # получаем  логгеры
+        logging_data = get_loggers(
+            name=model.settings.settings.SERVICE_NAME,
+        )
 
-    # # Формируем клавиатуру для главного меню
-    # get_main_keyboards = get_total_buttons_reply_kb(
-    #     list_text=[
-    #         module.settings.MENU_REPLY_TEXT
-    #         for module in root_modules
-    #         if module.settings.SERVICE_NAME != "main"
-    #     ],
-    #     quantity_button=2,
-    # )
+        # Подключаем middleware
+        model.router.router.message.middleware(
+            RouterErrorMiddleware(
+                logger=logging_data.error_logger,
+            )
+        )
+        model.router.router.callback_query.middleware(
+            RouterErrorMiddleware(logger=logging_data.error_logger)
+        )
 
-    # # Получаем список из имен для папки temp
-    # list_temp_folder_name: List[str] = get_child_modules_settings_temp_folder(
-    #     module_path=modules_path,
-    #     error_logger=bot_error_logger,
-    #     root_package="app.bot.modules",
-    # )
+        logging_bot.info_logger.info(
+            f"Middleware для {logging_data.router_name} подключен"
+        )
 
-    # # формируем путь для папки temp
-    # list_path_to_temp_folder: List[Path] = [
-    #     bot_settings.PATH_BOT_TEMP_FOLDER / name for name in list_temp_folder_name
-    # ]
-
-    # init_loggers(
-    #     bot_name=bot_settings.BOT_NAME,
-    #     setup_bot_logging=setup_bot_logging,
-    #     log_format=app_settings.LOG_FORMAT,
-    #     date_format=app_settings.DATE_FORMAT,
-    #     base_path=app_settings.PATH_LOG_FOLDER,
-    #     log_data=logging_data,
-    #     list_router_name=modules_settings,
-    #     bot_logging=False,
-    # )  # инициализируем логи
-
-    # await telegram_bot.set_my_commands(
-    #     commands=bot_settings.LIST_BOT_COMMANDS  # Добавляет команды боту
-    # )  # Добавляет команды боту
-    # await telegram_bot.delete_webhook(
-    #     drop_pending_updates=True
-    # )  # Игнорирует все присланные сообщение пока бот не работал
-
-    # for model in root_modules:
-    #     # получаем обьект  LoggingData содержащий логгеры
-    #     logging: LoggingData = get_loggers(
-    #         router_name=model.settings.SERVICE_NAME,
-    #         logging_data=logging_data,
-    #     )
-
-    #     # Подключаем middleware
-    #     model.router.message.middleware(
-    #         RouterErrorMiddleware(
-    #             logger=logging.error_logger,
-    #         )
-    #     )
-    #     model.router.callback_query.middleware(
-    #         RouterErrorMiddleware(logger=logging.error_logger)
-    #     )
-
-    #     logging.info_logger.info(f"Middleware для {logging.router_name} подключен")
-
-    return dp
+    return get_main_keyboards, dp
