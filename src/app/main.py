@@ -27,7 +27,7 @@ def main() -> None:
             print(err)
             sys.exit()
 
-        logging_data = get_loggers(name=app_settings.SERVICE_NAME)
+        logging_data = get_loggers(name=app_settings.NAME_FOR_LOG_FOLDER)
         asyncio.run(async_main())
     except KeyboardInterrupt:
         logging_data.info_logger.info("Приложение остановлено вручную (Ctrl+C)")
@@ -44,7 +44,7 @@ async def async_main() -> None:
 async def _run_unix():
     """Запуск приложения на unix-системе."""
 
-    logging_data = get_loggers(name=app_settings.SERVICE_NAME)
+    logging_data = get_loggers(name=app_settings.NAME_FOR_LOG_FOLDER)
 
     # корректно завершает работу на сервере
     loop = asyncio.get_event_loop()
@@ -60,7 +60,7 @@ async def _run_unix():
 async def _run_windows():
     """Запуск приложения на windows."""
 
-    logging_data = get_loggers(name=app_settings.SERVICE_NAME)
+    logging_data = get_loggers(name=app_settings.NAME_FOR_LOG_FOLDER)
     try:
         # Запускам бота
         logging_data.info_logger.info("Приложение запущено (Windows mode)")
