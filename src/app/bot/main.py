@@ -11,7 +11,7 @@ async def run_bot() -> None:
     # Встаем в try/except чтобы отловить все что не попало в middleware
     try:
 
-        logging_data = get_loggers(name=settings.SERVICE_NAME)
+        logging_data = get_loggers(name=settings.NAME_FOR_LOG_FOLDER)
         get_main_keyboards, dp = await setup_bot()
 
         # Создаем глобальную сессию для всего бота. Будет доступ в роутерах через
