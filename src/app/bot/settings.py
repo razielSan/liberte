@@ -9,6 +9,7 @@ class BotSettings(BaseSettings):
     """Общие настройки бота."""
 
     SERVICE_NAME: str = "bot"
+    NAME_FOR_LOG_FOLDER: str = "bot"
 
     TOKEN: Optional[str] = None
     LIST_BOT_COMMANDS: List[BotCommand] = [
