@@ -5,6 +5,7 @@ from core.scripts.bot.create_module import creates_new_modules_via_the_command_l
 from core.scripts.bot.remove_module import remove_module
 from core.paths.paths import SRC_DIR
 from core.context.context import load_bot_paths
+from core.contracts.constants import DEFAULT_BOT_MODULES_ROOT
 
 
 def main() -> None:
@@ -47,7 +48,7 @@ def main() -> None:
             creates_new_modules_via_the_command_line(
                 root_dir=SRC_DIR,
                 module_name=list_sys_argv[2],
-                root_package="app.bot.modules",
+                root_package=DEFAULT_BOT_MODULES_ROOT,
             )
     elif command == "remove-module":
         if len(list_sys_argv) < 3:
@@ -69,7 +70,7 @@ def main() -> None:
                 name_module=list_sys_argv[2],
                 log_path=bot_path.LOG_DIR,
                 temp_path=bot_path.TEMP_DIR,
-                root_package="app.bot.modules",
+                root_package=DEFAULT_BOT_MODULES_ROOT,
                 root_dir=SRC_DIR,
             )
     elif command == "help":
