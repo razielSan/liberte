@@ -11,6 +11,7 @@ from core.module_loader.loader import load_modules
 from core.utils.filesistem import ensure_directories
 from core.module_loader.register import register_module
 from core.logging.api import get_loggers
+from core.contracts.constants import DEFAULT_BOT_MODULES_ROOT
 
 
 from aiogram import Dispatcher
@@ -19,9 +20,11 @@ from aiogram import Dispatcher
 async def setup_bot() -> Dispatcher:
     """Подключает все необходимые компоненты для работы бота."""
 
-    logging_bot = get_loggers(name=settings.SERVICE_NAME)
+    logging_bot = get_loggers(name=settings.NAME_FOR_LOG_FOLDER)
 
-    array_modules = load_modules(root_package="app.bot.modules")
+    array_modules = load_modules(
+        root_package=DEFAULT_BOT_MODULES_ROOT,
+    )
 
     register_module(
         dp=dp,
@@ -63,7 +66,7 @@ async def setup_bot() -> Dispatcher:
     for model in root_modules:
         # получаем  логгеры
         logging_data = get_loggers(
-            name=model.settings.settings.SERVICE_NAME,
+            name=model.settings.settings.NAME_FOR_LOG_FOLDER,
         )
 
         # Подключаем middleware
