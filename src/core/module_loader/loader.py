@@ -5,7 +5,13 @@ from typing import List
 from types import ModuleType
 
 from core.response.modules_loader import ModuleInfo
-from core.constants import DEFAULT_CHILD_SEPARATOR
+from core.contracts.constants import (
+    DEFAULT_CHILD_SEPARATOR,
+    DEFAULT_NAME_ROUTER,
+    DEFAULT_NAME_SETTINGS,
+)
+from core.error_handlers.helpers import safe_import
+from core.response.response_data import ResponseData
 
 
 def get_root_and_parent(
@@ -43,6 +49,8 @@ def get_root_and_parent(
 
 def load_modules(
     root_package: str,
+    name_settings: str = DEFAULT_NAME_SETTINGS,
+    name_router: str = DEFAULT_NAME_ROUTER,
     separator: str = DEFAULT_CHILD_SEPARATOR,
 ) -> List[ModuleInfo]:
     """
@@ -56,11 +64,11 @@ def load_modules(
         app.bot.modules
 
         separator: (str): Имя для связывания дочернего и родительского модуля
-        
-        Имя папки для хранения дочерних модулей, формирования имен в settings, 
+
+        Имя папки для хранения дочерних модулей, формирования имен в settings,
         формирования имени роутера
 
-    Returns:       
+    Returns:
         List[ModuleInfo]: обьект содержащий в себе
 
         Атрибуты ModuleInfo]:
@@ -70,9 +78,9 @@ def load_modules(
             - router (ModuleType): Модуль router
             - parent (str | None): Имя корневого роутера если дочерний если корневой то
             None
-        
+
     """
-    
+
     package: ModuleType = importlib.import_module(root_package)
     modules = defaultdict(dict)
 
@@ -80,7 +88,9 @@ def load_modules(
         path=package.__path__, prefix=package.__name__ + "."
     ):
         module_name: str = module_info.name
-        if not module_name.endswith("settings") and not module_name.endswith("router"):
+        if not module_name.endswith(f"{name_settings}") and not module_name.endswith(
+            f"{name_router}"
+        ):
             continue
         root, parent = get_root_and_parent(
             module_name=module_name,
@@ -89,14 +99,19 @@ def load_modules(
         )
 
         package_name, file_type = module_name.rsplit(".", 1)
-        mod: ModuleType = importlib.import_module(module_name)
+        result_import = safe_import(module_path=module_name)
+
+        if result_import.error:
+            return result_import
+
+        mod = result_import.message
         modules[package_name][file_type] = mod
         modules[package_name]["root"] = root
         modules[package_name]["parent"] = parent
         modules[package_name]["package"] = package_name
     array_modules = []
     for package, data in modules.items():
-        if "router" not in data or "settings" not in data:
+        if f"{name_settings}" not in data or f"{name_router}" not in data:
             continue  # дополнительная проверка
 
         array_modules.append(
@@ -104,8 +119,8 @@ def load_modules(
                 package=data.get("package"),
                 root=data.get("root"),
                 parent=data.get("parent"),
-                router=data.get("router"),
-                settings=data.get("settings"),
+                router=data.get(f"{name_router}"),
+                settings=data.get(f"{name_settings}"),
             )
         )
     return array_modules
