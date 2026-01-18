@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 import logging
 
-from core.constants import DEFAULT_CHILD_SEPARATOR
+from core.contracts.constants import DEFAULT_CHILD_SEPARATOR
 
 
 def remove_module(
