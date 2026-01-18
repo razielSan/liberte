@@ -4,8 +4,13 @@ from typing import Dict, List
 from pathlib import Path
 
 from core.response.response_data import ResponseData
-from core.constants import DEFAULT_CHILD_SEPARATOR
-from core.module_loader.templates import TEMPLATE_DIRS, TEMPLATE_FILES
+from core.contracts.constants import (
+    DEFAULT_CHILD_SEPARATOR,
+    DEFAULT_NAME_OF_THE_ROUTER_FOLDER,
+)
+from core.contracts.templates import TEMPLATE_DIRS, TEMPLATE_FILES
+from core.contracts.validate import validate_module_structure, validate_module_settings
+from core.utils.filesistem import save_delete_data
 
 
 def generate_content(template: str, **kwargs):
@@ -22,6 +27,7 @@ def create_module(
     root_dir: Path,
     root_package: str,
     module_name: str,
+    name_router_folders: str = DEFAULT_NAME_OF_THE_ROUTER_FOLDER,
     separator: str = DEFAULT_CHILD_SEPARATOR,
     template_dirs: Dict = TEMPLATE_DIRS,
     template_files: Dict = TEMPLATE_FILES,
@@ -39,12 +45,12 @@ def create_module(
     utils/
     keyboards/
     childes/
+    handlers/
     __init__.py
     extensions.py
     router.py
     settings.py
     response.py
-    logging.py
 
     Args:
         root_dir (Path): Путь до корневой директории проекта
@@ -74,49 +80,74 @@ def create_module(
             - message (Any | None): Содержание ответа. None если произошла ошибка
             - error (str | None): Текст ошибки если есть если нет то None
     """
-
     list_modules: List[str] = module_name.split(".")  # разделяем имя модуля для
     # создания родетельских и дочерних модулей
     parent_name: str = list_modules[0]  # родительское имя модуля
     full_name = None
+    log_name = None
     package = None
     module_path = None
+    created_paths: List = []
     for index, name in enumerate(list_modules, start=1):
         if index == 1:  # если родительский модуль
-            full_name = name
-            package = f"{root_package}.{name}"
-            module_path = root_dir / Path(package.replace(".", "/"))
+            log_name: str = name
+            full_name: str = name
+            package: str = f"{root_package}.{name}"
+            module_path: Path = root_dir / Path(package.replace(".", "/"))
         else:
             full_name = f"{full_name}.{separator}.{name}"
             package = f"{package}.{separator}.{name}"
             module_path = root_dir / Path(package.replace(".", "/"))
 
-        if module_path.exists():
+        if (
+            module_path.exists()
+        ):  # если модуль существует то проверяем его структуру и пропускаем итерацию
+            result = validate_module_structure(path=module_path)
+            if result.error:
+                return result
             continue
 
         module_path.mkdir(parents=True, exist_ok=True)
         for filename, content in template_files.items():
+            created_paths.append(module_path)
+
             filepath: Path = module_path / filename
             temp_path: str = full_name.replace(".", "/")
-            log_name: str = full_name.split(".")[0]
             if not filepath.exists():
-                content: str = generate_content(
-                    log_name=log_name,
-                    template=content,
-                    name=full_name,
-                    temp_path=temp_path,
-                    root_package=package,
-                    path_to_module=f"{temp_path}/{separator}",
-                    root_childes=f"{package}.{separator}",
-                    root_router_name=parent_name,
-                )
+                try:  # проверяем корректность созданного контента
+                    content: str = generate_content(
+                        log_name=log_name,
+                        name_router_folders=name_router_folders,
+                        template=content,
+                        name=full_name,
+                        temp_path=temp_path,
+                        root_package=package,
+                        path_to_module=f"{temp_path}/{separator}",
+                        root_childes=f"{package}.{separator}",
+                        root_router_name=parent_name,
+                    )
+                except KeyError as err:
+                    save_delete_data(list_path=created_paths)
+                    return ResponseData(error=f"Template error: {err}")
             filepath.write_text(data=content, encoding="utf-8")
+
         for dir_name in template_dirs:
             directory: Path = module_path / dir_name
             directory.mkdir(exist_ok=True)
             init_file: Path = directory / "__init__.py"
             if not init_file.exists():
                 init_file.write_text("# init\n")
+
+        # Проверка на валидность структуры модуля и файла настроек
+        result_validate_structure = validate_module_structure(path=module_path)
+        if result_validate_structure.error:
+            save_delete_data(list_path=created_paths)  # удаляем созданые папки и файлы
+            return result_validate_structure
+        result_validate_settings = validate_module_settings(root_package=package)
+        if result_validate_settings.error:
+            save_delete_data(list_path=created_paths)
+            return result_validate_settings
+
     print("Modul create succeffuly")
     return ResponseData(message="success", error=None)
 
