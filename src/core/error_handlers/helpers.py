@@ -71,23 +71,23 @@ async def run_safe_inf_executror(
 def safe_import(
     module_path: str,
     error_logger: Logger = None,
-) -> Optional[ModuleType]:
+) -> ResponseData:
     """
     Безопасный импорт модуля.
 
     Возвращает модуль или None если произошла ошибка.
     """
     try:
-        return importlib.import_module(module_path)
+        return ResponseData(message=importlib.import_module(module_path), error=None)
     except Exception as err:
         if error_logger:
             error_logger.error(
-                f"[AUTO IMPORT ERROR] Модуль {module_path} не загрузился\n"
+                f"[IMPORT ERROR] Модуль {module_path} не загрузился\n"
                 f"{err}\n{traceback.format_exc()}"
             )
-        else:
-            print(
-                f"[AUTO IMPORT ERROR] Модуль {module_path} не загрузился\n"
-                f"{err}\n{traceback.format_exc()}"
-            )
-        return None
+
+        return ResponseData(
+            error=f"[IMPORT ERROR] Модуль {module_path} не загрузился\n"
+            f"{err}\n{traceback.format_exc()}",
+            message=None,
+        )
