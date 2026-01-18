@@ -3,7 +3,7 @@ from pathlib import Path
 from logging import Logger
 import shutil
 import os
-import asyncio
+import time
 
 from core.response.response_data import ResponseData, LoggingData
 from core.error_handlers.format import format_errors_message
@@ -62,7 +62,7 @@ def delete_all_files_and_symbolik_link(
             )
 
 
-async def save_delete_data(
+def save_delete_data(
     list_path: List[Path],
     warning_logger: Optional[Logger] = None,
     retries: int = 3,
@@ -83,11 +83,13 @@ async def save_delete_data(
                     shutil.rmtree(path=path)
 
             except PermissionError:
-                await asyncio.sleep(1)
+                time.sleep(1)
             except Exception as err:
                 message: str = f"Ошибка при удалении {path}: {err}"
                 if warning_logger:
                     warning_logger.exception(msg=message)
+                else:
+                    print(f"Failed to cleanup: {path}")
 
 
 def make_archive(
