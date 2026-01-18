@@ -6,7 +6,10 @@ import pkgutil
 from types import ModuleType
 
 
-from core.constants import DEFAULT_CHILD_SEPARATOR, DEFAULT_BOT_MODULES_ROOT
+from core.contracts.constants import (
+    DEFAULT_CHILD_SEPARATOR,
+    DEFAULT_BOT_MODULES_ROOT,
+)
 from core.logging.factory import LoggerFactory
 from core.logging.storage import storage
 from core.logging.runtime import LoggerRuntime
@@ -29,10 +32,12 @@ class AppPathProtocol(Protocol):
 
 class AppSettingsProtocol(Protocol):
     SERVICE_NAME: str
+    NAME_FOR_LOG_FOLDER: str
 
 
 class BotSettingsProtocol(Protocol):
     SERVICE_NAME: str
+    NAME_FOR_LOG_FOLDER: str
     TOKEN: str
     LIST_BOT_COMMANDS: List
 
@@ -181,7 +186,8 @@ def load_bot_root_modules_settings(
     package: ModuleType = importlib.import_module(root_package)  # получаем модуль
     array_settings: List = []  # список для настроек
     for module_info in pkgutil.walk_packages(
-        path=package.__path__, prefix=package.__name__ + "."
+        path=package.__path__,
+        prefix=package.__name__ + ".",
     ):  # проходимся по пакетам модуля
         name: str = module_info.name
 
@@ -243,19 +249,19 @@ def init_logging(
     # корневых модулей
 
     storage.add(
-        name=app_settings.SERVICE_NAME,
-        data=app_factory.create(name=app_settings.SERVICE_NAME),
+        name=app_settings.NAME_FOR_LOG_FOLDER,
+        data=app_factory.create(name=app_settings.NAME_FOR_LOG_FOLDER),
     )
     storage.add(
-        name=bot_settings.SERVICE_NAME,
-        data=bot_factory.create(name=bot_settings.SERVICE_NAME),
+        name=bot_settings.NAME_FOR_LOG_FOLDER,
+        data=bot_factory.create(name=bot_settings.NAME_FOR_LOG_FOLDER),
     )
     for settings in root_modules_settings:
         storage.add(
-            name=settings.SERVICE_NAME,
+            name=settings.NAME_FOR_LOG_FOLDER,
             data=bot_factory.create(
-                name=settings.SERVICE_NAME,
-                subdir=settings.SERVICE_NAME,
+                name=settings.NAME_FOR_LOG_FOLDER,
+                subdir=settings.NAME_FOR_LOG_FOLDER,
             ),
         )
 
@@ -273,7 +279,7 @@ def create_app_context(
     bot_settings = load_settings("app.bot.settings")
     app_path = load_app_paths("app.core.paths")
     bot_path = load_bot_paths("app.bot.core.paths")
-    modules_settings = load_bot_root_modules_settings(DEFAULT_BOT_MODULES_ROOT)
+    modules_settings = load_bot_root_modules_settings(bot_modules_root)
 
     loggers = init_logging(
         app_path=app_path,
