@@ -3,6 +3,8 @@ from collections import defaultdict
 import pkgutil
 from typing import List
 from types import ModuleType
+from pathlib import Path
+from logging import Logger
 
 from core.response.modules_loader import ModuleInfo
 from core.contracts.constants import (
@@ -11,7 +13,19 @@ from core.contracts.constants import (
     DEFAULT_NAME_SETTINGS,
 )
 from core.error_handlers.helpers import safe_import
-from core.response.response_data import ResponseData
+from core.response.response_data import (
+    ResponseData,
+    Result,
+    InlineKeyboardData,
+    LoggingData,
+)
+from core.error_handlers.helpers import ok
+from core.contracts.constants import DEFAULT_NAME_SETTINGS
+from core.contracts.module import (
+    DEFAULT_FIELD_FOR_INLINE_MENU_TEXT,
+    DEFAULT_FIELD_FOR_INLINE_MENU_DATA,
+)
+from core.error_handlers.format import format_errors_message
 
 
 def get_root_and_parent(
@@ -52,7 +66,7 @@ def load_modules(
     name_settings: str = DEFAULT_NAME_SETTINGS,
     name_router: str = DEFAULT_NAME_ROUTER,
     separator: str = DEFAULT_CHILD_SEPARATOR,
-) -> List[ModuleInfo]:
+) -> Result:
     """
     Проходится по модулям и возвращает обьект ModuleInfo c собранными
     данными
@@ -81,7 +95,12 @@ def load_modules(
 
     """
 
-    package: ModuleType = importlib.import_module(root_package)
+    result_import = safe_import(module_path=root_package)
+    if not result_import.ok:
+        return result_import
+
+    package = result_import.data
+
     modules = defaultdict(dict)
 
     for module_info in pkgutil.walk_packages(
@@ -101,10 +120,10 @@ def load_modules(
         package_name, file_type = module_name.rsplit(".", 1)
         result_import = safe_import(module_path=module_name)
 
-        if result_import.error:
+        if not result_import.ok:
             return result_import
 
-        mod = result_import.message
+        mod = result_import.data
         modules[package_name][file_type] = mod
         modules[package_name]["root"] = root
         modules[package_name]["parent"] = parent
@@ -123,4 +142,103 @@ def load_modules(
                 settings=data.get(f"{name_settings}"),
             )
         )
-    return array_modules
+    return ok(data=array_modules)
+
+
+def get_child_modules_settings_inline_data(
+    module_path: Path,
+    root_package: str,
+    logging_data: LoggingData = None,
+    name_settings: str = DEFAULT_NAME_SETTINGS,
+    field_inline_data: str = DEFAULT_FIELD_FOR_INLINE_MENU_DATA,
+    field_inline_text: str = DEFAULT_FIELD_FOR_INLINE_MENU_TEXT,
+) -> List[InlineKeyboardData]:
+    """
+    Проходится по дочерним модулям из указанного пути по файлам settings.py.
+
+    Записывает данные для инлайн клавиатуры в InlineKeyboardData.
+
+    Важное: Обьект settings должен содержать
+
+    settings.MENU_CALLBACK_DATA
+    settings.MENU_CALLBACK_TEXT
+
+
+    Args:
+        module_path (Path): Путь до модуля
+        error_logger (Logger): Логгер для записи в лог ошибок
+        root_package (str): Путь для импорта до childes, начинается с корневой директории
+
+        Пример:
+        app.bot.modules.example_modul.childes
+
+
+    Returns:
+        List[InlineKeyboardData]: Возвращает список из InlineKeyboardData
+
+        Атрибуты InlineKeyboardData]:
+                - text (str): Текст инлайн клавиатуры
+                - callback_data (str): Callback_data инлайн клавиатуры
+                - resize_keyboard (bool, Optional): Подгон размера клавиатуры. True по умолчанию
+    """
+
+    array_settings: List = []
+
+    # Ищем по папкам внутри пути
+    for path in module_path.iterdir():
+        # Если не папка то пропускаем
+        if not path.is_dir():
+            continue
+
+        # Если в папке есть settings.py
+        settings_path: Path = path / f"{name_settings}.py"
+        if settings_path.exists():
+            rel_path: Path = settings_path.parent.relative_to(module_path)
+            import_module: str = (
+                f"{root_package}.{rel_path.as_posix().replace('/', '.')}"
+            )
+            module_settings_result = safe_import(
+                module_path=f"{import_module}.{name_settings}",
+                error_logger=logging_data.error_logger,
+            )
+
+            if not module_settings_result.ok:
+                logging_data.error_logger.error(
+                    msg=format_errors_message(
+                        name_router=logging_data.router_name,
+                        function_name=get_child_modules_settings_inline_data.__name__,
+                        error_text=f"Кнопка для {settings_path} не была "
+                        f"создана - Ошибка при импорте модуля {module_path}",
+                    )
+                )
+
+                continue
+
+            module_settings = module_settings_result.data
+
+            # Получаем settings из settings.py
+            settings = getattr(module_settings, f"{name_settings}", None)
+
+            # Проверка на присутвствие в settings полей для инлайн клавиатуры
+            missing = {
+                attr
+                for attr in (field_inline_data, field_inline_text)
+                if not hasattr(settings, attr)
+            }
+            if missing:
+                logging_data.warning_logger.warning(
+                    msg=f"setting {settings_path} пропущен, нет {missing}"
+                )
+
+            if (
+                settings
+                and hasattr(settings, f"{field_inline_data}")
+                and hasattr(settings, f"{field_inline_text}")
+            ):
+                array_settings.append(
+                    InlineKeyboardData(
+                        text=settings.MENU_CALLBACK_TEXT,
+                        callback_data=settings.MENU_CALLBACK_DATA,
+                    )
+                )
+    return array_settings
