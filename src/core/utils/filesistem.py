@@ -4,28 +4,49 @@ from logging import Logger
 import shutil
 import os
 import time
+import traceback
 
 from core.response.response_data import ResponseData, LoggingData
 from core.error_handlers.format import format_errors_message
+from core.error_handlers.format import format_errors_message
 from core.response.messages import telegram_emoji
+from core.contracts.validate import fail, ok
+from core.response.response_data import Result
 
 
 def ensure_directories(
     *args: Path,
-    info_logger: Optional[Logger] = None,
-) -> None:
+    logging_data: LoggingData = None,
+) -> Result:
     """
     Проверяет наличие переданных путей и создает их при необходимости.
 
     Args:
         info_logger (Optional[Logger], optional): Логгер для записи в лог. Defaults to None.
     """
-    requiered_dirs: Tuple[Path, ...] = args
+    try:
+        directory = None
+        requiered_dirs: Tuple[Path, ...] = args
 
-    for dir in requiered_dirs:
-        dir.mkdir(parents=True, exist_ok=True)
-        if info_logger:
-            info_logger.info(f"Директория {dir} создана")
+        for directory in requiered_dirs:
+            directory.mkdir(parents=True, exist_ok=True)
+            if logging_data:
+                logging_data.info_logger.info(f"Директория {directory} создана")
+        return ok(data="success")
+    except Exception as err:
+        logging_data.error_logger.error(
+            msg=format_errors_message(
+                name_router=logging_data.router_name,
+                error_text=f"Ошибка при создании директории"
+                f" - {directory}\n{traceback.format_exc()}",
+                function_name=ensure_directories.__name__,
+            )
+        )
+        return fail(
+            code="DIRECTORY CREATE ERROR",
+            message=f"Ошибка при создании директории - {directory}\n{err}",
+            details=str(traceback.format_exc())
+        )
 
 
 def delete_all_files_and_symbolik_link(
