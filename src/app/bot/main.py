@@ -1,9 +1,12 @@
+import sys
+
 import aiohttp
 
 from app.bot.core.startup import setup_bot
 from app.bot.settings import settings
 from app.bot.core.bot import telegram_bot
 from core.logging.api import get_loggers
+from core.error_handlers.format import format_errors_message
 
 
 async def run_bot() -> None:
@@ -12,7 +15,18 @@ async def run_bot() -> None:
     try:
 
         logging_data = get_loggers(name=settings.NAME_FOR_LOG_FOLDER)
-        get_main_keyboards, dp = await setup_bot()
+        result_startup = await setup_bot()
+        if not result_startup.ok:
+            logging_data.critical_logger.critical(
+                format_errors_message(
+                    name_router=logging_data.router_name,
+                    function_name=run_bot.__name__,
+                    error_text=f"[STARTUP FAILED] {result_startup.error.code} {result_startup.error.message}",
+                )
+            )
+            sys.exit()
+
+        get_main_keyboards, dp = result_startup.data
 
         # Создаем глобальную сессию для всего бота. Будет доступ в роутерах через
         # название указанное ниже
