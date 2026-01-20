@@ -1,12 +1,11 @@
-from typing import Tuple, Optional, List
+from typing import Tuple, List
 from pathlib import Path
-from logging import Logger
 import shutil
 import os
 import time
 import traceback
 
-from core.response.response_data import ResponseData, LoggingData
+from core.response.response_data import LoggingData
 from core.error_handlers.format import format_errors_message
 from core.error_handlers.format import format_errors_message
 from core.response.messages import telegram_emoji
@@ -22,7 +21,28 @@ def ensure_directories(
     Проверяет наличие переданных путей и создает их при необходимости.
 
     Args:
-        info_logger (Optional[Logger], optional): Логгер для записи в лог. Defaults to None.
+        logging_data (LoggingData, optional): Обьект класса LoggingData.По умолчанию None
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
+
+    Returns:
+        Result: содержит в себе
+
+        атрибуты Result:
+            - ok (bool)
+            - data (Optional[Any])
+            - error: Optional[Error]
+
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - detatails (Optional[Any])
+
     """
     try:
         directory = None
@@ -45,7 +65,7 @@ def ensure_directories(
         return fail(
             code="DIRECTORY CREATE ERROR",
             message=f"Ошибка при создании директории - {directory}\n{err}",
-            details=str(traceback.format_exc())
+            details=str(traceback.format_exc()),
         )
 
 
@@ -58,8 +78,15 @@ def delete_all_files_and_symbolik_link(
 
     Args:
         path_folder (Path): Путь до папки
-        logging_data (LoggingData): Обьект класса LoggingData содержащий в себе логгеры и
-        имя роутера
+        logging_data (LoggingData): Обьект класса LoggingData
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
+
     """
     # Проверяем есть ли папка в наличии
     if not path_folder.exists():
@@ -85,14 +112,24 @@ def delete_all_files_and_symbolik_link(
 
 def save_delete_data(
     list_path: List[Path],
-    warning_logger: Optional[Logger] = None,
+    logging_data: LoggingData = None,
     retries: int = 3,
 ) -> None:
     """Удаляет данные по переданному пути.
 
     Args:
         list_path (List[Path]): Список с путями до данных
-        warning_logger (Optional[Logger], optional): логгер для записи в лог. По умолчанию None
+        logging_data (LoggingData, optional): логгер для записи в лог. По умолчанию None
+
+        logging_data (LoggingData): Обьект класса LoggingData
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
+
         retries (int): Количество попыток для удаления данных
     """
     for path in list_path:
@@ -107,8 +144,8 @@ def save_delete_data(
                 time.sleep(1)
             except Exception as err:
                 message: str = f"Ошибка при удалении {path}: {err}"
-                if warning_logger:
-                    warning_logger.exception(msg=message)
+                if logging_data:
+                    logging_data.warning_logger.warning(msg=message)
                 else:
                     print(f"Failed to cleanup: {path}")
 
@@ -119,7 +156,7 @@ def make_archive(
     root_dir: Path,
     base_dir: str,
     logging_data: LoggingData,
-) -> ResponseData:
+) -> Result:
     """
     Создает архив по переданному пути.
 
@@ -136,15 +173,28 @@ def make_archive(
         Пример
         "." - архивирует все файлы в сам архив без создания папок
 
-        logging_data (LoggingData): Обьект класса LoggingData содержащий в себе логгеры и
-        имя роутера
+        logging_data (LoggingData): Обьект класса LoggingData
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
+
 
     Returns:
-        ResponseData: Объект с результатом запроса.
+        Result: содержит в себе
 
-        Атрибуты ResponseData:
-            - message (str | None): Путь сохранения архива (если запрос прошёл успешно).
-            - error (str | None): Описание ошибки, если запрос завершился неудачей.
+        атрибуты Result:
+            - ok (bool)
+            - data (Optional[Any])
+            - error: Optional[Error]
+
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - detatails (Optional[Any])
     """
     try:
         shutil.make_archive(
@@ -153,7 +203,7 @@ def make_archive(
             root_dir=root_dir,
             base_dir=base_dir,
         )
-        return ResponseData(message=base_name, error=None)
+        return ok(data=base_name)
     except Exception as err:
         logging_data.error_logger.exception(
             format_errors_message(
@@ -165,7 +215,7 @@ def make_archive(
                 function_name=make_archive.__name__,
             )
         )
-        return ResponseData(
-            error=f"{telegram_emoji.red_cross} Ошибка при создании архива",
-            message=None,
+        return fail(
+            code="ARCHIVE CREATE ERROR",
+            message=f"{telegram_emoji.red_cross} Ошибка при создании архива",
         )
