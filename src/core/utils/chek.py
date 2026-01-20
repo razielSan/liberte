@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 
-from core.response.response_data import ResponseData
+from core.response.response_data import Result
+from core.error_handlers.helpers import ok, fail
 
 
 def checking_base64(data: str) -> bool:
@@ -18,7 +19,7 @@ def checking_base64(data: str) -> bool:
     return True
 
 
-def chek_number_is_positivity(number: str) -> ResponseData:
+def check_number_is_positivity(number: str) -> Result:
     """
     Проверяет, является ли входящее  значение положительным числом.
 
@@ -26,20 +27,30 @@ def chek_number_is_positivity(number: str) -> ResponseData:
         number (str): Данные для проверки
 
     Returns:
-        ResponseData: Возвращает экземпляр класса ResponseData
+        Result: содержит в себе
 
-        Атрибуты ResponseData:
-            - message (Any | None): Само число, если оно прошло проверку.
-            - error (str | None): Описание ошибки, если число не прошло проверку.
+        атрибуты Result:
+            - ok (bool)
+            - data (Optional[Any])
+            - error: Optional[Error]
+
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - detatails (Optional[Any])
     """
 
     try:
         number: int = int(number)
         if number <= 0:
-            return ResponseData(error="⚠ Число должно быть больше 0")
-        return ResponseData(message=number)
+            return fail(
+                code="FAILED CHECK POSITIVITY", message="⚠ Число должно быть больше 0"
+            )
+        return ok(data=number)
     except Exception:
-        return ResponseData(error="⚠ Данные должны быть целым числом")
+        return fail(
+            code="FAILED CHECK POSITIVITY", message="⚠ Данные должны быть целым числом"
+        )
 
 
 def is_valid_url(url: str) -> bool:
