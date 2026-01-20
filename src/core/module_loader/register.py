@@ -17,6 +17,15 @@ def register_module(
         dp (Dispatcher): Диспетчер aiogram
         modules (List[ModuleInfo]): Список содержащий в себе обьект класса ModuleInfo
         для подключения router
+        logging_data (LoggingData): Обьект класса LoggingData
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
+
     """
 
     root: List[ModuleInfo] = sorted(
