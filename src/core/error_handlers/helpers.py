@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Union, Any
+from typing import Callable, Optional, Union, Any, Dict
 from asyncio import AbstractEventLoop, exceptions
 import functools
 import traceback
@@ -6,9 +6,31 @@ from logging import Logger
 import importlib
 from types import ModuleType
 
-from core.response.response_data import LoggingData, ResponseData
+from core.response.response_data import LoggingData, ResponseData, Result, Error
 from core.error_handlers.format import format_errors_message
 from core.response.messages import messages
+
+
+def ok(data: None) -> Result:
+    return Result(
+        ok=True,
+        data=data,
+    )
+
+
+def fail(
+    code: str,
+    message: str,
+    details=None,
+) -> Result:
+    return Result(
+        ok=False,
+        error=Error(
+            code=code,
+            message=message,
+            detatails=details,
+        ),
+    )
 
 
 async def run_safe_inf_executror(
@@ -71,14 +93,14 @@ async def run_safe_inf_executror(
 def safe_import(
     module_path: str,
     error_logger: Logger = None,
-) -> ResponseData:
+) -> Result:
     """
     Безопасный импорт модуля.
 
     Возвращает модуль или None если произошла ошибка.
     """
     try:
-        return ResponseData(message=importlib.import_module(module_path), error=None)
+        return ok(data=importlib.import_module(module_path))
     except Exception as err:
         if error_logger:
             error_logger.error(
@@ -86,8 +108,7 @@ def safe_import(
                 f"{err}\n{traceback.format_exc()}"
             )
 
-        return ResponseData(
-            error=f"[IMPORT ERROR] Модуль {module_path} не загрузился\n"
-            f"{err}\n{traceback.format_exc()}",
-            message=None,
+        return fail(
+            code="IMPORT ERROR",
+            message=f"Модуль {module_path} не загрузился\n{err}",
         )
