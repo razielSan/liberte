@@ -5,6 +5,18 @@ from logging import Logger
 from pydantic import BaseModel
 
 
+class Error(BaseModel):
+    code: str
+    message: str
+    detatails: Optional[Any] = None
+
+
+class Result(BaseModel):
+    ok: bool
+    data: Optional[Any] = None
+    error: Optional[Error] = None
+
+
 class NetworkResponseData(BaseModel):
     """Модель для возвращаения сетевых ответов."""
 
