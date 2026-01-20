@@ -18,7 +18,7 @@ def format_errors_message(
         status (int): Статус ответа
         url (str): URL запроса
         error_text (str): Текст ошибки
-        function: (str): Имя функции в которой произошла ошибка
+        function_name: (str): Имя функции в которой произошла ошибка
 
     Returns:
         str: Возвращает строку для записи в лог ошибок
