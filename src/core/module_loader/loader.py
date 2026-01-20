@@ -1,10 +1,7 @@
-import importlib
 from collections import defaultdict
 import pkgutil
 from typing import List
-from types import ModuleType
 from pathlib import Path
-from logging import Logger
 
 from core.response.modules_loader import ModuleInfo
 from core.contracts.constants import (
@@ -14,7 +11,6 @@ from core.contracts.constants import (
 )
 from core.error_handlers.helpers import safe_import
 from core.response.response_data import (
-    ResponseData,
     Result,
     InlineKeyboardData,
     LoggingData,
@@ -37,9 +33,9 @@ def get_root_and_parent(
     Проверка имени модуля на родительский и дочерний.
 
     Args:
-        module_name: Имя модуля
+        module_name (str): Имя модуля
         root_package: (str): Путь для импорта
-        separator: (str): Имя для связывыная дочернего и родительского модуля
+        separator (str): Имя для связывыная дочернего и родительского модуля
 
     Returns:
         List[str]:
@@ -72,12 +68,15 @@ def load_modules(
     данными
 
     Args:
-        root_package: (str): Путь для импорта, начинается с корневой директории
+        root_package (str): Путь для импорта, начинается с корневой директории
 
         Пример
         app.bot.modules
 
-        separator: (str): Имя для связывания дочернего и родительского модуля
+        name_settings (str): Имя файла для хранений настроек. По умолчанию DEFAULT_NAME_SETTINGS
+        name_router (str): Имя файла для хранения роутера.По умолчанию DEFAULT_NAME_ROUTER
+
+        separator (str): Имя для связывания дочернего и родительского модуля
 
         Имя папки для хранения дочерних модулей, формирования имен в settings,
         формирования имени роутера
@@ -95,7 +94,7 @@ def load_modules(
 
     """
 
-    result_import = safe_import(module_path=root_package)
+    result_import = safe_import(module_package=root_package)
     if not result_import.ok:
         return result_import
 
@@ -118,7 +117,7 @@ def load_modules(
         )
 
         package_name, file_type = module_name.rsplit(".", 1)
-        result_import = safe_import(module_path=module_name)
+        result_import = safe_import(module_package=module_name)
 
         if not result_import.ok:
             return result_import
@@ -158,19 +157,28 @@ def get_child_modules_settings_inline_data(
 
     Записывает данные для инлайн клавиатуры в InlineKeyboardData.
 
-    Важное: Обьект settings должен содержать
-
-    settings.MENU_CALLBACK_DATA
-    settings.MENU_CALLBACK_TEXT
-
 
     Args:
         module_path (Path): Путь до модуля
-        error_logger (Logger): Логгер для записи в лог ошибок
         root_package (str): Путь для импорта до childes, начинается с корневой директории
 
         Пример:
         app.bot.modules.example_modul.childes
+
+        logging_data (LoggingData): Обьект класса LoggingData. По умолчанию Nont
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
+
+        name_settings (str): Имя файла для хранений настроек. По умолчанию DEFAULT_NAME_SETTINGS
+        field_inline_data (str): Название поля в модели для обзначения callback инлайн клавиатуры
+        aiogram
+        field_inline_text (str): Название поля в модели для обозначения текста инлайн клавиатуры
+        aiogram
 
 
     Returns:
@@ -198,8 +206,8 @@ def get_child_modules_settings_inline_data(
                 f"{root_package}.{rel_path.as_posix().replace('/', '.')}"
             )
             module_settings_result = safe_import(
-                module_path=f"{import_module}.{name_settings}",
-                error_logger=logging_data.error_logger,
+                module_package=f"{import_module}.{name_settings}",
+                logging_data=logging_data,
             )
 
             if not module_settings_result.ok:
@@ -229,6 +237,7 @@ def get_child_modules_settings_inline_data(
                 logging_data.warning_logger.warning(
                     msg=f"setting {settings_path} пропущен, нет {missing}"
                 )
+                continue
 
             if (
                 settings
