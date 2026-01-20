@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Dict, List
 from pathlib import Path
 
-from core.response.response_data import ResponseData
+from core.response.response_data import ResponseData, Result
+from core.error_handlers.helpers import ok, fail
 from core.contracts.constants import (
     DEFAULT_CHILD_SEPARATOR,
     DEFAULT_NAME_OF_THE_ROUTER_FOLDER,
@@ -31,7 +32,7 @@ def create_module(
     separator: str = DEFAULT_CHILD_SEPARATOR,
     template_dirs: Dict = TEMPLATE_DIRS,
     template_files: Dict = TEMPLATE_FILES,
-) -> ResponseData:
+) -> Result:
     """
     Создает модуль и все вложенные модули
 
@@ -82,6 +83,12 @@ def create_module(
     """
     list_modules: List[str] = module_name.split(".")  # разделяем имя модуля для
     # создания родетельских и дочерних модулей
+
+    # Полный путь до конечного дочернего модуля, для проверки на его повторное создание
+    full_module_path = (
+        root_dir / root_package.replace(".", "/") / f"/{separator}/".join(list_modules)
+    )
+
     parent_name: str = list_modules[0]  # родительское имя модуля
     full_name = None
     log_name = None
@@ -102,8 +109,14 @@ def create_module(
         if (
             module_path.exists()
         ):  # если модуль существует то проверяем его структуру и пропускаем итерацию
-            result = validate_module_structure(path=module_path)
-            if result.error:
+            if module_path == full_module_path:
+                return fail(
+                    code="Module is exists",
+                    message=f"\nМодуль {module_path} уже существует",
+                )
+
+            result: Result = validate_module_structure(path=module_path)
+            if not result.ok:
                 return result
             continue
 
@@ -128,7 +141,11 @@ def create_module(
                     )
                 except KeyError as err:
                     save_delete_data(list_path=created_paths)
-                    return ResponseData(error=f"Template error: {err}")
+                    return fail(
+                        code="Template Error",
+                        message=f"Template error: {err}",
+                    )
+
             filepath.write_text(data=content, encoding="utf-8")
 
         for dir_name in template_dirs:
@@ -140,7 +157,7 @@ def create_module(
 
         # Проверка на валидность структуры модуля и файла настроек
         result_validate_structure = validate_module_structure(path=module_path)
-        if result_validate_structure.error:
+        if not result_validate_structure.ok:
             save_delete_data(list_path=created_paths)  # удаляем созданые папки и файлы
             return result_validate_structure
         result_validate_settings = validate_module_settings(root_package=package)
@@ -149,7 +166,7 @@ def create_module(
             return result_validate_settings
 
     print("Modul create succeffuly")
-    return ResponseData(message="success", error=None)
+    return ok(data="success")
 
 
 def creates_new_modules_via_the_command_line(
@@ -169,7 +186,7 @@ def creates_new_modules_via_the_command_line(
     cli add-module video.test.data
 
     """
-    data: ResponseData = create_module(
+    data: Result = create_module(
         module_name=module_name,
         root_package=root_package,
         root_dir=root_dir,
@@ -177,7 +194,7 @@ def creates_new_modules_via_the_command_line(
         template_dirs=template_dirs,
         separator=separator,
     )
-    if data.error:
-        print(data.error)
+    if not data.ok:
+        print(data.error.message)
     else:
         print(f"Modules {module_name} created successfully")
