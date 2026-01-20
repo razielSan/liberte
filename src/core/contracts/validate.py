@@ -44,7 +44,7 @@ def validate_module_settings(
 ) -> Result:
 
     result_import: Result = safe_import(
-        module_path=f"{root_package}.{name_settings}",
+        module_package=f"{root_package}.{name_settings}"
     )
     if not result_import.ok:
         return result_import
