@@ -12,6 +12,7 @@ from core.contracts.constants import (
 from core.contracts.templates import TEMPLATE_DIRS, TEMPLATE_FILES
 from core.contracts.validate import validate_module_structure, validate_module_settings
 from core.utils.filesistem import save_delete_data
+from core.contracts.module import RequiredFieldsModulSettings
 
 
 def generate_content(template: str, **kwargs):
@@ -32,6 +33,7 @@ def create_module(
     separator: str = DEFAULT_CHILD_SEPARATOR,
     template_dirs: Dict = TEMPLATE_DIRS,
     template_files: Dict = TEMPLATE_FILES,
+    requiered_field_modul: RequiredFieldsModulSettings = RequiredFieldsModulSettings,
 ) -> Result:
     """
     Создает модуль и все вложенные модули
@@ -72,14 +74,21 @@ def create_module(
 
         template_dirs: (Dict): Шаблон с директориями для создания модуля
         template_files: (Dict): Шаблон с файлами для создания модуля
-
-
+        requiered_field_modul: (RequiredFieldsModulSettings): Еnum для подставления в 
+        шаблон в имена полей settings.
+        
     Returns:
-        RepsonseData: объект содержащий в себе
+        Result: содержит в себе
 
-        Атрибуты ResponseData:
-            - message (Any | None): Содержание ответа. None если произошла ошибка
-            - error (str | None): Текст ошибки если есть если нет то None
+        атрибуты Result:
+            - ok (bool)
+            - data (Optional[Any])
+            - error: Optional[Error]
+
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - detatails (Optional[Any])
     """
     list_modules: List[str] = module_name.split(".")  # разделяем имя модуля для
     # создания родетельских и дочерних модулей
@@ -129,15 +138,16 @@ def create_module(
             if not filepath.exists():
                 try:  # проверяем корректность созданного контента
                     content: str = generate_content(
+                        template=content,
                         log_name=log_name,
                         name_router_folders=name_router_folders,
-                        template=content,
                         name=full_name,
                         temp_path=temp_path,
                         root_package=package,
                         path_to_module=f"{temp_path}/{separator}",
                         root_childes=f"{package}.{separator}",
                         root_router_name=parent_name,
+                        **requiered_field_modul.get_fields(),
                     )
                 except KeyError as err:
                     save_delete_data(list_path=created_paths)
@@ -161,7 +171,7 @@ def create_module(
             save_delete_data(list_path=created_paths)  # удаляем созданые папки и файлы
             return result_validate_structure
         result_validate_settings = validate_module_settings(root_package=package)
-        if result_validate_settings.error:
+        if not result_validate_settings.ok:
             save_delete_data(list_path=created_paths)
             return result_validate_settings
 
