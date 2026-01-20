@@ -45,14 +45,14 @@ for file in handlers_path.glob("*.py"):
 
 
 class ModuleSettings(BaseModel):
-    SERVICE_NAME: str = "{name}"
-    MENU_REPLY_TEXT: str = "{name}" 
-    MENU_CALLBACK_TEXT: str = "{name}"
-    MENU_CALLBACK_DATA: str = "{name}"
-    SHOW_IN_MAIN_MENU: bool = True
-    NAME_FOR_LOG_FOLDER: str = "{log_name}"
-    NAME_FOR_TEMP_FOLDER: str = "{temp_path}"
-    ROOT_PACKAGE: str = "{root_package}"
+    {SERVICE_NAME}: str = "{name}"
+    {MENU_REPLY_TEXT}: str = "{name}" 
+    {MENU_CALLBACK_TEXT}: str = "{name}"
+    {MENU_CALLBACK_DATA}: str = "{name}"
+    {SHOW_IN_MAIN_MENU}: bool = True
+    {NAME_FOR_LOG_FOLDER}: str = "{log_name}"
+    {NAME_FOR_TEMP_FOLDER}: str = "{temp_path}"
+    {ROOT_PACKAGE}: str = "{root_package}"
     
 settings: ModuleSettings = ModuleSettings()
     """,
