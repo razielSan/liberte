@@ -31,6 +31,9 @@ def main() -> None:
         asyncio.run(async_main())
     except KeyboardInterrupt:
         logging_data.info_logger.info("Приложение остановлено вручную (Ctrl+C)")
+    except Exception:
+        logging_data.error_logger.error("Критическая ошибка в async приложении")
+        raise
 
 
 async def async_main() -> None:
@@ -65,8 +68,11 @@ async def _run_windows():
         # Запускам бота
         logging_data.info_logger.info("Приложение запущено (Windows mode)")
         await run_bot()
-    except Exception as err:
-        print(err)
+    except Exception:
+        logging_data.error_logger.exception(
+            "Необработанное исключение при запуске Windows"
+        )
+        raise
     finally:
         # Завершаем работy для windows
         logging_data.info_logger.info("Приложение завершает работу")
