@@ -1,17 +1,17 @@
-from typing import Callable, Optional, Union, Any, Dict
+from typing import Callable, Optional, Union, Any
 from asyncio import AbstractEventLoop, exceptions
 import functools
 import traceback
-from logging import Logger
 import importlib
-from types import ModuleType
 
-from core.response.response_data import LoggingData, ResponseData, Result, Error
+from core.response.response_data import LoggingData, Result, Error
 from core.error_handlers.format import format_errors_message
 from core.response.messages import messages
 
 
 def ok(data: None) -> Result:
+    """Возвращает класс Result для успешного запроса."""
+
     return Result(
         ok=True,
         data=data,
@@ -23,6 +23,7 @@ def fail(
     message: str,
     details=None,
 ) -> Result:
+    """Возвращает класс Result для неуспешного запроса."""
     return Result(
         ok=False,
         error=Error(
@@ -37,9 +38,9 @@ async def run_safe_inf_executror(
     loop: AbstractEventLoop,
     func: Callable,
     *args,
-    logging_data: Optional[LoggingData] = None,
+    logging_data: LoggingData = None,
     **kwargs,
-) -> Union[Any, ResponseData]:
+) -> Union[Any, Result]:
     """
     Отлавливает все возможные ошибки для переданной синхронной функции.
 
@@ -48,11 +49,17 @@ async def run_safe_inf_executror(
     Args:
         loop (AbstractEventLoop): цикл событий
         func (Callable): функция для цикла
-        logging_data (Optional[LoggingData], optional): обьект класс
-        LoggingData содержащий логгер и имя роутера. None по умолчанию
+        logging_data (LoggingData, optional): Обьект класса LoggingData.По умолчанию None
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
 
     Returns:
-        Union[Any, NetworkResponseData]: Возвращает loop.run_in_executor
+        Union[Any, Result]: Возвращает loop.run_in_executor
     """
     try:
         return await loop.run_in_executor(
@@ -65,10 +72,6 @@ async def run_safe_inf_executror(
         )
     except exceptions.CancelledError:
         print("Остановка работы процесса пользователем")
-        return ResponseData(
-            message="Остановка работы процесса пользователем",
-            error=None,
-        )
 
     except Exception as err:
         if logging_data:
@@ -84,31 +87,63 @@ async def run_safe_inf_executror(
             )
         else:
             print(err)
-        return ResponseData(
-            error=messages.SERVER_ERROR,
-            message=None,
-        )
+
+        return fail(code="Unknown error", message=messages.SERVER_ERROR)
 
 
 def safe_import(
-    module_path: str,
-    error_logger: Logger = None,
+    module_package: str,
+    logging_data: LoggingData = None,
 ) -> Result:
     """
     Безопасный импорт модуля.
 
-    Возвращает модуль или None если произошла ошибка.
+    Args:
+        module_package (str): Путь для импорта
+
+        Пример:
+        app.bot.modules.test.settings
+        
+        logging_data (LoggingData, optional): Обьект класса LoggingData.По умолчанию None
+
+        атрибуты LoggingData:
+            - info_logger (Logger)
+            - warning_logger (Logger)
+            - error_logger (Logger)
+            - critical_logger (Logger)
+            - router_name (str)
+
+    Returns:
+        Result: содержит в себе
+
+        атрибуты Result:
+            - ok (bool)
+            - data (Optional[Any])
+            - error: Optional[Error]
+
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - detatails (Optional[Any])
     """
     try:
-        return ok(data=importlib.import_module(module_path))
+        return ok(data=importlib.import_module(module_package))
     except Exception as err:
-        if error_logger:
-            error_logger.error(
-                f"[IMPORT ERROR] Модуль {module_path} не загрузился\n"
-                f"{err}\n{traceback.format_exc()}"
+        if logging_data:
+            logging_data.error_logger.error(
+                format_errors_message(
+                    name_router=logging_data.router_name,
+                    error_text=f"[IMPORT ERROR] Модуль {module_package} не загрузился\n"
+                    f"{err}\n{traceback.format_exc()}",
+                    function_name=safe_import.__name__,
+                )
+            )
+        else:
+            print(
+                f"[IMPORT ERROR] Модуль {module_package} не загрузился\n{traceback.format_exc()}"
             )
 
         return fail(
             code="IMPORT ERROR",
-            message=f"Модуль {module_path} не загрузился\n{err}",
+            message=f"Модуль {module_package} не загрузился\n{err}",
         )
