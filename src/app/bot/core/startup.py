@@ -8,9 +8,9 @@ from app.bot.core.bot import telegram_bot
 from app.bot.settings import settings
 from app.bot.core.middleware.errors import RouterErrorMiddleware
 from app.app_utils.keyboards import get_total_buttons_reply_kb
-from core.module_loader.loader import load_modules
+from core.module_loader.runtime.loader import load_modules
 from core.utils.filesistem import ensure_directories
-from core.module_loader.register import register_module
+from core.module_loader.runtime.register import register_module
 from core.logging.api import get_loggers
 from core.contracts.constants import DEFAULT_BOT_MODULES_ROOT
 from core.error_handlers.helpers import ok, fail
