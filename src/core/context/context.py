@@ -14,6 +14,15 @@ from core.logging.factory import LoggerFactory
 from core.logging.storage import storage
 from core.logging.runtime import LoggerRuntime
 from core.logging.format import log_format
+from core.module_loader.runtime.validate import validate_module
+from core.contracts.module import (
+    REQUIRED_FIELD_APP_MODULES_SETTINGS,
+    REQUIRED_FIELD_BOT_MODULES_SETTINGS,
+    REQUIRED_FIELDS_MODULES,
+)
+from core.contracts.constants import (
+    DEFAULT_NAME_SETTINGS,
+)
 
 
 class BotPathProtocol(Protocol):
@@ -122,7 +131,11 @@ def load_app_paths(app_core: str, name_variable: str = "app_path") -> AppPathPro
     return module.app_path
 
 
-def load_settings(core: str) -> object:
+def load_data_modules(
+    core: str,
+    requiered_fields: set,
+    name: str,
+) -> object:
     """
     Возвращает обьект хранящий настройки.
 
@@ -144,15 +157,18 @@ def load_settings(core: str) -> object:
             ............
 
     """
+    settings = validate_module(
+        root_package=core, required_field_modules=requiered_fields, name=name
+    )
+    if not settings.ok:
+        raise RuntimeError(settings.error.message)
 
-    module = importlib.import_module(core)
-    if not hasattr(module, "settings"):
-        raise RuntimeError("settings not found")
-    return module.settings
+    return settings.data
 
 
-def load_bot_root_modules_settings(
+def load_bot_root_modules_data(
     root_package: str,
+    file_name: str,
     separator: str = DEFAULT_CHILD_SEPARATOR,
 ) -> List[ModuleSettings]:
     """
@@ -168,7 +184,6 @@ def load_bot_root_modules_settings(
         По умолчанию DEFAULT_CHILD_SEPARATOR
 
         Имя папки для хранения дочерних модулей, формирования имен в settings,
-        формирования имени роутерадулей
 
     Returns:
         List[ModuleSettings]: содержит в себе
@@ -191,20 +206,22 @@ def load_bot_root_modules_settings(
     ):  # проходимся по пакетам модуля
         name: str = module_info.name
 
-        if not name.endswith("settings"):  # если не настройки
+        if not name.endswith(f"{file_name}"):  # если не нужный файл
             continue
 
         if separator in name:  # если дочерний то пропускаем итерацию
             continue
+        
+        settings = validate_module(
+            root_package=name,
+            required_field_modules=REQUIRED_FIELDS_MODULES,
+            name=file_name,
+            root=True,
+        )
+        if not settings.ok:
+            raise RuntimeError(settings.error.message)
 
-        module_settings: ModuleType = importlib.import_module(name=name)
-
-        if not hasattr(module_settings, "settings"):
-            raise RuntimeError("settings not found")
-
-        setttings = getattr(module_settings, "settings")
-
-        array_settings.append(setttings)
+        array_settings.append(settings.data)
     return array_settings
 
 
@@ -275,11 +292,22 @@ def create_app_context(
 ) -> AppContext:
     """Создает контекст приложения."""
 
-    app_settings = load_settings("app.settings")
-    bot_settings = load_settings("app.bot.settings")
+    app_settings = load_data_modules(
+        "app",
+        requiered_fields=REQUIRED_FIELD_APP_MODULES_SETTINGS,
+        name=DEFAULT_NAME_SETTINGS,
+    )
+    bot_settings = load_data_modules(
+        "app.bot",
+        requiered_fields=REQUIRED_FIELD_BOT_MODULES_SETTINGS,
+        name=DEFAULT_NAME_SETTINGS,
+    )
     app_path = load_app_paths("app.core.paths")
     bot_path = load_bot_paths("app.bot.core.paths")
-    modules_settings = load_bot_root_modules_settings(bot_modules_root)
+    modules_settings = load_bot_root_modules_data(
+        root_package=bot_modules_root,
+        file_name=DEFAULT_NAME_SETTINGS,
+    )
 
     loggers = init_logging(
         app_path=app_path,
