@@ -7,9 +7,8 @@ import traceback
 
 from core.response.response_data import LoggingData
 from core.error_handlers.format import format_errors_message
-from core.error_handlers.format import format_errors_message
 from core.response.messages import telegram_emoji
-from core.contracts.validate import fail, ok
+from core.error_handlers.helpers import ok, fail
 from core.response.response_data import Result
 
 
@@ -194,7 +193,7 @@ def make_archive(
         атрибуты Error:
             - code (str)
             - message (str)
-            - detatails (Optional[Any])
+            - details (Optional[Any])
     """
     try:
         shutil.make_archive(
