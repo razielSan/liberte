@@ -46,6 +46,7 @@ def network_ok(
     method: str,
     headers: Dict = None,
 ) -> NetworkResponseResult:
+    """Возвращает класс NetworkResponseResult для успешного запроса."""
     return NetworkResponseResult(
         ok=True,
         data=data,
@@ -64,7 +65,8 @@ def network_fail(
     method: str,
     details: Any = None,
     headers: Dict = None,
-):
+) -> NetworkResponseResult:
+    """Возвращает класс NetworkResponseResult для неуспешного запроса."""
     return NetworkResponseResult(
         ok=False,
         url=url,
@@ -164,7 +166,7 @@ def safe_import(
         атрибуты Result:
             - ok (bool)
             - data (Optional[Any])
-            - error: Optional[Error]
+            - error: (Optional[Error])
 
         атрибуты Error:
             - code (str)
