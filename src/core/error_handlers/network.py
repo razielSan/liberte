@@ -55,15 +55,34 @@ async def error_handler_for_the_website(
         function_name (str): Имя функции в которой произошла ошибка
         json (json_data): JSON данные.По умолчанию None
 
-    Returns:
-        NetworkResponseData: Объект с результатом запроса.
+    Returns: NetworkResponseResult
 
-        Атрибуты NetworkResponseData:
-            - message (Any | None): Данные успешного ответа (если запрос прошёл успешно).
-            - error (str | None): Описание ошибки, если запрос завершился неудачей.
+    NetworkResponseResult: содержит в себе
+        class NetworkResponseResult(BaseModel):
+        ok: bool
+        data: Optional[Any] = None
+        url: str
+        status: int
+        method: str
+        headers: Optional[Dict] = None
+        error: Optional[Error] = None
+
+
+        атрибуты NetworkResponseResult:
+            - ok (bool): True если запрос прошел успешно, False - Произошла ошибка
+            - data (Optional[Any]): Данные успешного ответа
+            - url (str): URL, по которому выполнялся запрос
             - status (int): HTTP-код ответа. 0 — если ошибка возникла на клиентской стороне.
-            - url (str): URL, по которому выполнялся запрос.
             - method (str): HTTP-метод, использованный при запросе.
+            - headers (Optional(Any): Заголовки ответа.
+            - error (Optioanl(Error)): Класс содержащий данные об ошибке если произошла,
+            None если запрос произошел усешно
+
+
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - details (Optional[Any])
     """
     timeout_cfg: aiohttp.ClientTimeout = aiohttp.ClientTimeout(total=timeout)
     try:
