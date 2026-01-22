@@ -37,7 +37,7 @@ def check_number_is_positivity(number: str) -> Result:
         атрибуты Error:
             - code (str)
             - message (str)
-            - detatails (Optional[Any])
+            - details (Optional[Any])
     """
 
     try:
