@@ -4,7 +4,8 @@ import asyncio
 import aiohttp
 
 from core.error_handlers.format import format_errors_message
-from core.response.response_data import NetworkResponseData, LoggingData
+from core.response.response_data import NetworkResponseResult, LoggingData
+from core.error_handlers.helpers import network_fail, network_ok
 from core.response.messages import messages
 
 
@@ -38,7 +39,7 @@ async def error_handler_for_the_website(
     headers=None,
     function_name=None,
     json=None,
-) -> NetworkResponseData:
+) -> NetworkResponseResult:
     """
     Асинхронный запрос с обработками ошибок для сайтов.
 
@@ -106,9 +107,10 @@ async def error_handler_for_the_website(
                     )
                 )
 
-                return NetworkResponseData(
+                return network_fail(
+                    code="NETWORK ERROR",
+                    message=error_message_str,
                     status=resp.status,
-                    error=error_message_str,
                     url=url,
                     method=resp.method,
                     headers=resp.headers,
@@ -129,27 +131,29 @@ async def error_handler_for_the_website(
                         function_name=function_name,
                     )
                 )
-
-                return NetworkResponseData(
+                return network_fail(
+                    code="UNKNOWN_STATUS_ERROR",
+                    message=messages.UNKNOWN_STATUS_ERROR,
                     status=resp.status,
-                    error=messages.UNKNOWN_STATUS_ERROR,
                     url=url,
                     method=resp.method,
                     headers=resp.headers,
                 )
+
             if data_type.upper() == "JSON":
                 message_body = await resp.json()
-                return NetworkResponseData(
-                    message=message_body,
+                return network_ok(
+                    data=message_body,
                     status=resp.status,
                     url=url,
                     method=resp.method,
                     headers=resp.headers,
                 )
+
             elif data_type.upper() == "TEXT":
                 message_body: str = await resp.text()
-                return NetworkResponseData(
-                    message=message_body,
+                return network_ok(
+                    data=message_body,
                     status=resp.status,
                     url=url,
                     method=resp.method,
@@ -157,8 +161,8 @@ async def error_handler_for_the_website(
                 )
             else:
                 message_body: bytes = await resp.read()
-                return NetworkResponseData(
-                    message=message_body,
+                return network_ok(
+                    data=message_body,
                     status=resp.status,
                     url=url,
                     method=resp.method,
@@ -178,12 +182,14 @@ async def error_handler_for_the_website(
             )
         )
 
-        return NetworkResponseData(
-            error=messages.NETWORK_ERROR,
+        return network_fail(
+            code="NETWORK_ERROR",
+            message=messages.NETWORK_ERROR,
             status=0,
             url=url,
             method=method,
         )
+
     except asyncio.TimeoutError as err:
         error_message: str = f"Ожидание от сервера истекло:\n{err}"
 
@@ -197,13 +203,14 @@ async def error_handler_for_the_website(
                 function_name=function_name,
             )
         )
-
-        return NetworkResponseData(
-            error=messages.TIMEOUT_ERROR,
+        return network_fail(
+            code="TIMEOUT_NETWORK_ERROR",
+            message=messages.TIMEOUT_ERROR,
             status=0,
             url=url,
             method=method,
         )
+
     except Exception as err:
         error_message: str = f"Неизвестная ошибка при запросе:\n{err}"
 
@@ -217,9 +224,9 @@ async def error_handler_for_the_website(
                 function_name=function_name,
             )
         )
-
-        return NetworkResponseData(
-            error=messages.SERVER_ERROR,
+        return network_fail(
+            code="SERVER_ERROR",
+            message=messages.SERVER_ERROR,
             status=0,
             url=url,
             method=method,
