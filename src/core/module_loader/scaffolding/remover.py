@@ -80,5 +80,3 @@ def remove_module(
     if log_path.exists():
         shutil.rmtree(log_path)
         print(f"Удалены логи - {log_path}")
-
-    print(f"Процедура удаления {path_name} завершена")
