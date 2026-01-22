@@ -3,8 +3,9 @@ from pathlib import Path
 
 from aiohttp import ClientSession
 
-from core.response.response_data import LoggingData, NetworkResponseData
+from core.response.response_data import NetworkResponseResult, LoggingData
 from core.error_handlers.network import error_handler_for_the_website
+from core.error_handlers.helpers import network_fail, network_ok
 from core.error_handlers.format import format_errors_message
 from core.response.messages import messages
 
@@ -15,7 +16,7 @@ async def get_and_save_image(
     session: ClientSession,
     logging_data: LoggingData,
     base_64: bool = False,
-) -> NetworkResponseData:
+) -> NetworkResponseResult:
     """
     Сохраняет data_requests по указанному пути, если base_64 = True.
 
@@ -30,14 +31,21 @@ async def get_and_save_image(
         base_64 (Optional[bool], optional): Проверка на кодировку base_64. По умолачанию None
 
     Returns:
-        NetworkResponseData: Объект с результатом запроса.
+        NetworkResponseResult: Объект с результатом запроса.
 
-        Атрибуты NetworkResponseData:
-            - message (Any | None): Путь до картинки (если запрос прошёл успешно).
-            - error (str | None): Описание ошибки, если запрос завершился неудачей.
-            - status (int): HTTP-код ответа. 0 — если ошибка возникла на клиентской стороне.
-            - url (str): URL, по которому выполнялся запрос.
-            - method (str): HTTP-метод, использованный при запросе.
+        атрибуты NetworkResponseResult:
+            - ok (bool)
+            - data (Optional, Any)
+            - url (str)
+            - status (int)
+            - method (str)
+            - headers (Optional, Dict)
+            - error (Optional, Error)
+            
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - details (Optional[Any])
     """
     try:
         if base_64:
@@ -55,7 +63,7 @@ async def get_and_save_image(
                 )
             }
             # Делаем запрос на сайт для получения данных о картинке
-            response: NetworkResponseData = await error_handler_for_the_website(
+            response = await error_handler_for_the_website(
                 session=session,
                 url=data_requests,
                 logging_data=logging_data,
@@ -64,7 +72,7 @@ async def get_and_save_image(
                 headers=headers,
                 function_name=get_and_save_image.__name__,
             )
-            if response.error:
+            if not response.ok:
                 return response
 
             # Получаем расширение для картинки, если есть
@@ -82,14 +90,15 @@ async def get_and_save_image(
             path_img.parent.mkdir(parents=True, exist_ok=True)
 
             with open(path_img, "wb") as file:
-                file.write(response.message)
+                file.write(response.data)
 
-        return NetworkResponseData(
-            message=path_img,
-            url="<unknown>",
-            method="GET",
-            status=200,
+        return network_ok(
+            data=path_img,
+            url=response.url,
+            method=response.method,
+            status=response.status,
         )
+
     except Exception as err:
         logging_data.error_logger.exception(
             format_errors_message(
@@ -101,8 +110,9 @@ async def get_and_save_image(
                 function_name=get_and_save_image.__name__,
             )
         )
-        return NetworkResponseData(
-            error=messages.SERVER_ERROR,
+        return network_fail(
+            code="SERVER_ERROR",
+            message=messages.SERVER_ERROR,
             method="GET",
             status=0,
             url="base64" if base64 else data_requests,
