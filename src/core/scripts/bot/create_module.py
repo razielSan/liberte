@@ -1,1 +1,1 @@
-from core.module_loader.creator import creates_new_modules_via_the_command_line
+from core.module_loader.scaffolding.creator import creates_new_modules_via_the_command_line
