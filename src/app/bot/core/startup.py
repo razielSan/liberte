@@ -12,7 +12,11 @@ from core.module_loader.runtime.loader import load_modules
 from core.utils.filesistem import ensure_directories
 from core.module_loader.runtime.register import register_module
 from core.logging.api import get_loggers
-from core.contracts.constants import DEFAULT_BOT_MODULES_ROOT
+from core.contracts.constants import (
+    DEFAULT_BOT_MODULES_ROOT,
+    DEFAULT_NAME_ROUTER,
+    DEFAULT_NAME_SETTINGS,
+)
 from core.error_handlers.helpers import ok, fail
 from core.response.response_data import Result
 from core.error_handlers.format import format_errors_message
@@ -25,6 +29,8 @@ async def setup_bot() -> Result:
 
         result_load_modules = load_modules(
             root_package=DEFAULT_BOT_MODULES_ROOT,
+            name_router=DEFAULT_NAME_ROUTER,
+            name_settings=DEFAULT_NAME_SETTINGS,
         )
         if not result_load_modules.ok:
             return result_load_modules
@@ -35,6 +41,7 @@ async def setup_bot() -> Result:
             dp=dp,
             modules=array_modules,
             logging_data=logging_bot,
+            name=DEFAULT_NAME_ROUTER,
         )  # регестрируем модули
 
         list_path_to_temp_folder = [
