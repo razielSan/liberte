@@ -8,12 +8,22 @@ from pydantic import BaseModel
 class Error(BaseModel):
     code: str
     message: str
-    detatails: Optional[Any] = None
+    details: Optional[Any] = None
 
 
 class Result(BaseModel):
     ok: bool
     data: Optional[Any] = None
+    error: Optional[Error] = None
+
+
+class NetworkResponseResult(BaseModel):
+    ok: bool
+    data: Optional[Any] = None
+    url: str
+    status: int
+    method: str
+    headers: Optional[Dict] = None
     error: Optional[Error] = None
 
 
@@ -26,13 +36,6 @@ class NetworkResponseData(BaseModel):
     status: Optional[int] = None
     method: Optional[str] = None
     headers: Optional[Dict] = None
-
-
-class ResponseData(BaseModel):
-    """Модель для возвращаения ответов."""
-
-    error: Optional[str] = None
-    message: Optional[Any] = None
 
 
 @dataclass
