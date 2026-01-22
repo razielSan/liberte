@@ -27,6 +27,8 @@ def register_module(
             - error_logger (Logger)
             - critical_logger (Logger)
             - router_name (str)
+        
+        name (str): Имя переменной для роутера
 
     """
 
