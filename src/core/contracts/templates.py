@@ -59,13 +59,14 @@ settings: ModuleSettings = ModuleSettings()
     "response.py": """# Responses, strings, text for module {name}
 from pathlib import Path
 
-from core.module_loader.loader import get_child_modules_settings_inline_data
+from core.module_loader.runtime.loader import get_child_modules_settings_inline_data
 from app.app_utils.keyboards import get_total_buttons_inline_kb
 from app.bot.core.paths import bot_path
 from core.logging.api import get_loggers
+from .settings import settings
 
 
-logging_data = get_loggers(name="{log_name}")
+logging_data = get_loggers(name=settings.NAME_FOR_LOG_FOLDER)
 
 
 
