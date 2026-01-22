@@ -1,10 +1,15 @@
-from typing import Callable, Optional, Union, Any
+from typing import Callable, Optional, Union, Any, Dict
 from asyncio import AbstractEventLoop, exceptions
 import functools
 import traceback
 import importlib
 
-from core.response.response_data import LoggingData, Result, Error
+from core.response.response_data import (
+    LoggingData,
+    Result,
+    Error,
+    NetworkResponseResult,
+)
 from core.error_handlers.format import format_errors_message
 from core.response.messages import messages
 
@@ -21,7 +26,7 @@ def ok(data: None) -> Result:
 def fail(
     code: str,
     message: str,
-    details=None,
+    details: Any = None,
 ) -> Result:
     """Возвращает класс Result для неуспешного запроса."""
     return Result(
@@ -29,7 +34,47 @@ def fail(
         error=Error(
             code=code,
             message=message,
-            detatails=details,
+            details=details,
+        ),
+    )
+
+
+def network_ok(
+    data: Any,
+    url: str,
+    status: int,
+    method: str,
+    headers: Dict = None,
+) -> NetworkResponseResult:
+    return NetworkResponseResult(
+        ok=True,
+        data=data,
+        url=url,
+        status=status,
+        method=method,
+        headers=headers,
+    )
+
+
+def network_fail(
+    code: str,
+    message: str,
+    url: str,
+    status: int,
+    method: str,
+    details: Any = None,
+    headers: Dict = None,
+):
+    return NetworkResponseResult(
+        ok=False,
+        url=url,
+        status=status,
+        method=method,
+        headers=headers,
+        error=Error(
+            code=code,
+            message=message,
+            details=details,
         ),
     )
 
@@ -59,7 +104,7 @@ async def run_safe_inf_executror(
             - router_name (str)
 
     Returns:
-        Union[Any, Result]: Возвращает loop.run_in_executor
+        Union[Any, Result]: Возвращает результат функции func
     """
     try:
         return await loop.run_in_executor(
@@ -103,7 +148,7 @@ def safe_import(
 
         Пример:
         app.bot.modules.test.settings
-        
+
         logging_data (LoggingData, optional): Обьект класса LoggingData.По умолчанию None
 
         атрибуты LoggingData:
@@ -124,7 +169,7 @@ def safe_import(
         атрибуты Error:
             - code (str)
             - message (str)
-            - detatails (Optional[Any])
+            - details (Optional[Any])
     """
     try:
         return ok(data=importlib.import_module(module_package))
