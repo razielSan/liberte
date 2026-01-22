@@ -88,7 +88,7 @@ def create_module(
         атрибуты Result:
             - ok (bool)
             - data (Optional[Any])
-            - error: Optional[Error]
+            - error: (Optional[Error])
 
         атрибуты Error:
             - code (str)
