@@ -13,8 +13,41 @@ def validate_module(
     root_package: str,
     required_field_modules: set = REQUIRED_FIELDS_MODULES,
     name: str = DEFAULT_NAME_SETTINGS,
-    root: bool = None,
+    root: bool = False,
 ) -> Result:
+    """
+    Ипортирует именновыный модуль и проверяет его поля.
+    Обьект должен быть классом для проверки полей.
+
+    Args:
+        root_package (str): Путь для модуля, в котором хранится модуль
+        
+        Пример:
+        
+        root=True
+        app.bot.modules.settings.settings
+        
+        root=False
+        app.bot.modules.settings
+        
+        required_field_modules (set, optional): Поля для проверки.
+        name (str, optional): Имя обьекта По умолчанию Defaults to DEFAULT_NAME_SETTINGS.
+        root (bool, optional): Флаг для проверки. Если True то импортирует сразу root_package,
+        если False то подставляет name
+
+    Returns:        
+        Result: содержит в себе
+
+        атрибуты Result:
+            - ok (bool)
+            - data (Optional[Any])
+            - error: (Optional[Error])
+
+        атрибуты Error:
+            - code (str)
+            - message (str)
+            - detatails (Optional[Any])
+    """
 
     result_import = None
     if root:
