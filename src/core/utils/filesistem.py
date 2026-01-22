@@ -35,12 +35,12 @@ def ensure_directories(
         атрибуты Result:
             - ok (bool)
             - data (Optional[Any])
-            - error: Optional[Error]
+            - error: (Optional[Error])
 
         атрибуты Error:
             - code (str)
             - message (str)
-            - detatails (Optional[Any])
+            - details (Optional[Any])
 
     """
     try:
@@ -188,7 +188,7 @@ def make_archive(
         атрибуты Result:
             - ok (bool)
             - data (Optional[Any])
-            - error: Optional[Error]
+            - error: (Optional[Error])
 
         атрибуты Error:
             - code (str)
