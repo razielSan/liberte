@@ -6,18 +6,24 @@ from pydantic import BaseModel
 
 
 class Error(BaseModel):
+    """Модель для ошибок"""
+
     code: str
     message: str
     details: Optional[Any] = None
 
 
 class Result(BaseModel):
+    """Модель для ответа."""
+
     ok: bool
     data: Optional[Any] = None
     error: Optional[Error] = None
 
 
 class NetworkResponseResult(BaseModel):
+    """Модель для сетевого ответа."""
+
     ok: bool
     data: Optional[Any] = None
     url: str
@@ -25,17 +31,6 @@ class NetworkResponseResult(BaseModel):
     method: str
     headers: Optional[Dict] = None
     error: Optional[Error] = None
-
-
-class NetworkResponseData(BaseModel):
-    """Модель для возвращаения сетевых ответов."""
-
-    error: Optional[str] = None
-    message: Optional[Any] = None
-    url: Optional[str] = None
-    status: Optional[int] = None
-    method: Optional[str] = None
-    headers: Optional[Dict] = None
 
 
 @dataclass
