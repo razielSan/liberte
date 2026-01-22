@@ -1,1 +1,1 @@
-from core.module_loader.remover import remove_module
+from core.module_loader.scaffolding.remover import remove_module
