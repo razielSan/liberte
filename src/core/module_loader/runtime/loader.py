@@ -235,7 +235,7 @@ def get_child_modules_settings_inline_data(
             }
             if missing:
                 logging_data.warning_logger.warning(
-                    msg=f"setting {settings_path} пропущен, нет {missing}"
+                    msg=f"{name_settings} {settings_path} пропущен, нет {missing}"
                 )
                 continue
 

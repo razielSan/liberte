@@ -2,12 +2,14 @@ from typing import List, Dict
 
 from core.response.modules_loader import ModuleInfo
 from core.response.response_data import LoggingData
+from core.contracts.constants import DEFAULT_NAME_ROUTER
 
 
 def register_module(
     dp: object,
     modules: List[ModuleInfo],
     logging_data: LoggingData,
+    name: str = DEFAULT_NAME_ROUTER,
 ) -> None:
     """
     Подключает к диспетчеру переданные роутеры.
@@ -42,17 +44,22 @@ def register_module(
     root_map: Dict = {}
 
     for mod in root:
-        dp.include_router(router=mod.router.router)
-        root_map[mod.root] = mod.router.router
+        router = mod.router
+        root_router = getattr(router, name)
+        dp.include_router(router=root_router)
+        root_map[mod.root] = root_router
         logging_data.info_logger.info(
-            "\n[Auto] Root router inculde into dp: {}".format(mod.router.router)
+            "\n[Auto] Root router inculde into dp: {}".format(root_router)
         )
 
     for mod in children:
         parent_router = root_map.get(mod.parent)
         if not parent_router:
             continue
-        parent_router.include_router(mod.router.router)
+        
+        router = mod.router
+        child_router = getattr(router, name)
+        parent_router.include_router(child_router)
         logging_data.info_logger.info(
-            f"\n[Auto] Child router inculded into {parent_router}: {mod.router.router}",
+            f"\n[Auto] Child router inculded into {parent_router}: {child_router}",
         )
