@@ -3,6 +3,8 @@ DEFAULT_BOT_MODULES_ROOT: str = "app.bot.modules"
 DEFAULT_NAME_OF_THE_ROUTER_FOLDER: str = "handlers"
 DEFAULT_NAME_SETTINGS: str = "settings"
 DEFAULT_NAME_ROUTER: str = "router"
+DEFAUTL_NAME_APP_PATH: str = "app_path"
+DEFAUTL_NAME_BOT_PATH: str = "bot_path"
 
 
 REQUIERED_MODULE_DIRS = [
