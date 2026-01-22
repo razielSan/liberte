@@ -22,6 +22,8 @@ from core.contracts.module import (
 )
 from core.contracts.constants import (
     DEFAULT_NAME_SETTINGS,
+    DEFAUTL_NAME_APP_PATH,
+    DEFAUTL_NAME_BOT_PATH,
 )
 
 
@@ -71,7 +73,10 @@ class AppContext:
     root_modules_settings: List[ModuleSettings]
 
 
-def load_bot_paths(bot_core: str, name_variable: str = "bot_path") -> BotPathProtocol:
+def load_bot_paths(
+    bot_core: str,
+    name_variable: str = "bot_path",
+) -> BotPathProtocol:
     """
     Возвращает обьект хранящий путь для бота.
 
@@ -101,7 +106,10 @@ def load_bot_paths(bot_core: str, name_variable: str = "bot_path") -> BotPathPro
     return module.bot_path
 
 
-def load_app_paths(app_core: str, name_variable: str = "app_path") -> AppPathProtocol:
+def load_app_paths(
+    app_core: str,
+    name_variable: str = "app_path",
+) -> AppPathProtocol:
     """
     Возвращает обьект хранящий путь для приложения.
 
@@ -137,24 +145,24 @@ def load_data_modules(
     name: str,
 ) -> object:
     """
-    Возвращает обьект хранящий настройки.
+    Возвращает именнованый обьект из модуля.
+    Обьект должен быть классом для проверки полей.
 
     Args:
         core (str): Путь до модуля в котором хранятся настройки
 
         Пример:
         app.bot.core.settings
+        
+        requiered_fields (set): Поля для проверки
+        name: Имя обьекта
 
 
     Raises:
         RuntimeError: Ошибка если переменная не найдена
 
     Returns:
-        object: содержит в себ
-
-        атрибуты object:
-            - SERVICE_NAME (str)
-            ............
+        object: Класс 
 
     """
     settings = validate_module(
@@ -172,7 +180,7 @@ def load_bot_root_modules_data(
     separator: str = DEFAULT_CHILD_SEPARATOR,
 ) -> List[ModuleSettings]:
     """
-    Возвращает список из обьектов содержащих настройки для корневых модулей.
+    Возвращает список из именнованных обьектов содержащих настройки для корневых модулей.
 
     Args:
         root_package (str): Путь для модуля, в котором хранятся модули
@@ -180,6 +188,7 @@ def load_bot_root_modules_data(
         Пример:
         app.bot.modules
 
+        file_name (str): Имя обьекта
         separator: (str): Имя для связывыния дочернего и родительского модуля.
         По умолчанию DEFAULT_CHILD_SEPARATOR
 
@@ -193,6 +202,7 @@ def load_bot_root_modules_data(
             - MENU_REPLY_TEXT (str)
             - MENU_CALLBACK_TEXT (str)
             - MENU_CALLBACK_DATA (str)
+            - SHOW_IN_MAIN_MENU
             - NAME_FOR_LOG_FOLDER (str)
             - NAME_FOR_TEMP_FOLDER: (str)
             - ROOT_PACKAGE: (str)
@@ -211,7 +221,7 @@ def load_bot_root_modules_data(
 
         if separator in name:  # если дочерний то пропускаем итерацию
             continue
-        
+
         settings = validate_module(
             root_package=name,
             required_field_modules=REQUIRED_FIELDS_MODULES,
@@ -302,8 +312,14 @@ def create_app_context(
         requiered_fields=REQUIRED_FIELD_BOT_MODULES_SETTINGS,
         name=DEFAULT_NAME_SETTINGS,
     )
-    app_path = load_app_paths("app.core.paths")
-    bot_path = load_bot_paths("app.bot.core.paths")
+    app_path = load_app_paths(
+        "app.core.paths",
+        name_variable=DEFAUTL_NAME_APP_PATH,
+    )
+    bot_path = load_bot_paths(
+        "app.bot.core.paths",
+        name_variable=DEFAUTL_NAME_BOT_PATH,
+    )
     modules_settings = load_bot_root_modules_data(
         root_package=bot_modules_root,
         file_name=DEFAULT_NAME_SETTINGS,
