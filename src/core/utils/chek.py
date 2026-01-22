@@ -32,7 +32,7 @@ def check_number_is_positivity(number: str) -> Result:
         атрибуты Result:
             - ok (bool)
             - data (Optional[Any])
-            - error: Optional[Error]
+            - error: (Optional[Error])
 
         атрибуты Error:
             - code (str)
