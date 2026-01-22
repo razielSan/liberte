@@ -65,14 +65,15 @@ def main() -> None:
             )
             exit()
         else:
-
+            name_module: str = list_sys_argv[2]
             remove_module(
-                name_module=list_sys_argv[2],
+                name_module=name_module,
                 log_path=bot_path.LOG_DIR,
                 temp_path=bot_path.TEMP_DIR,
                 root_package=DEFAULT_BOT_MODULES_ROOT,
                 root_dir=SRC_DIR,
             )
+            print(f"Процедура удаления {name_module} завершена")
     elif command == "help":
         print(
             """-----
