@@ -44,9 +44,12 @@ async def setup_bot() -> Result:
             name=DEFAULT_NAME_ROUTER,
         )  # регестрируем модули
 
+        settings_array_modules = [
+            getattr(model.settings, DEFAULT_NAME_SETTINGS) for model in array_modules
+        ]
         list_path_to_temp_folder = [
-            bot_path.TEMP_DIR / Path(m.settings.settings.NAME_FOR_TEMP_FOLDER)
-            for m in array_modules
+            bot_path.TEMP_DIR / Path(config.NAME_FOR_TEMP_FOLDER)
+            for config in settings_array_modules
         ]  # получаем список из путей для папки temp
 
         result_directory = ensure_directories(
@@ -60,11 +63,14 @@ async def setup_bot() -> Result:
 
         root_modules = [m for m in array_modules if m.is_root]
 
+        settings_root_modules = [
+            getattr(module.settings, DEFAULT_NAME_SETTINGS) for module in root_modules
+        ]
         # Формируем клавиатуру для главного меню
         settings_modules = [
-            m.settings.settings.MENU_REPLY_TEXT
-            for m in root_modules
-            if m.settings.settings.SHOW_IN_MAIN_MENU
+            config.MENU_REPLY_TEXT
+            for config in settings_root_modules
+            if config.SHOW_IN_MAIN_MENU
         ]
         get_main_keyboards = None
         if len(settings_modules) == 0:
@@ -92,17 +98,21 @@ async def setup_bot() -> Result:
 
         for model in root_modules:
             # получаем  логгеры
+
+            config = getattr(model.settings, DEFAULT_NAME_SETTINGS)
+            router = getattr(model.router, DEFAULT_NAME_ROUTER)
+
             logging_data = get_loggers(
-                name=model.settings.settings.NAME_FOR_LOG_FOLDER,
+                name=config.NAME_FOR_LOG_FOLDER,
             )
 
             # Подключаем middleware
-            model.router.router.message.middleware(
+            router.message.middleware(
                 RouterErrorMiddleware(
                     logger=logging_data.error_logger,
                 )
             )
-            model.router.router.callback_query.middleware(
+            router.callback_query.middleware(
                 RouterErrorMiddleware(logger=logging_data.error_logger)
             )
 
