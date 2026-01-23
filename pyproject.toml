@@ -1,7 +1,7 @@
 [project]
 name = "liberte"
-version = "0.1.6"
-description = "Modular aiogram bot core"
+version = "1.0.0"
+description = "mini framework based on aiogram"
 requires-python = ">=3.8"
 
 dependencies = [
