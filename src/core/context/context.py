@@ -1,6 +1,6 @@
 from pathlib import Path
 import importlib
-from typing import Protocol, List
+from typing import Protocol, List, Optional
 from dataclasses import dataclass
 import pkgutil
 from types import ModuleType
@@ -142,7 +142,8 @@ def load_app_paths(
 def load_data_modules(
     core: str,
     requiered_fields: set,
-    name: str,
+    name: Optional[str] = None,
+    default_name_object: str = "settings",
 ) -> object:
     """
     Возвращает именнованый обьект из модуля.
@@ -153,18 +154,21 @@ def load_data_modules(
 
         Пример:
         app.bot.core.settings
-        
+
         requiered_fields (set): Поля для проверки
-        name: Имя обьекта
+        name (Optinal, str): Имя обьекта.Если не передано будет использовано default_name_object
+        default_name_object (str): Дефолтное имя для обьекта
 
 
     Raises:
         RuntimeError: Ошибка если переменная не найдена
 
     Returns:
-        object: Класс 
+        object: Класс
 
     """
+    name = name if name else default_name_object
+
     settings = validate_module(
         root_package=core, required_field_modules=requiered_fields, name=name
     )
@@ -258,7 +262,6 @@ def init_logging(
     Returns:
         LoggerRuntime: Склад логов
     """
-
     # Создание фабрики логгеров для приложения и бота
     app_factory: LoggerFactory = LoggerFactory(
         base_path=app_path.LOG_DIR,
@@ -293,7 +296,6 @@ def init_logging(
         )
 
     LoggerRuntime.init(storage=storage)
-
     return LoggerRuntime
 
 
@@ -303,14 +305,12 @@ def create_app_context(
     """Создает контекст приложения."""
 
     app_settings = load_data_modules(
-        "app",
+        core="app",
         requiered_fields=REQUIRED_FIELD_APP_MODULES_SETTINGS,
-        name=DEFAULT_NAME_SETTINGS,
     )
     bot_settings = load_data_modules(
-        "app.bot",
+        core="app.bot",
         requiered_fields=REQUIRED_FIELD_BOT_MODULES_SETTINGS,
-        name=DEFAULT_NAME_SETTINGS,
     )
     app_path = load_app_paths(
         "app.core.paths",
@@ -332,7 +332,6 @@ def create_app_context(
         bot_settings=bot_settings,
         root_modules_settings=modules_settings,
     )
-
     return AppContext(
         app_path=app_path,
         bot_path=bot_path,
