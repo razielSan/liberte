@@ -21,21 +21,21 @@ def validate_module(
 
     Args:
         root_package (str): Путь для модуля, в котором хранится модуль
-        
+
         Пример:
-        
+
         root=True
         app.bot.modules.settings.settings
-        
+
         root=False
         app.bot.modules.settings
-        
+
         required_field_modules (set, optional): Поля для проверки.
         name (str, optional): Имя обьекта По умолчанию Defaults to DEFAULT_NAME_SETTINGS.
         root (bool, optional): Флаг для проверки. Если True то импортирует сразу root_package,
         если False то подставляет name
 
-    Returns:        
+    Returns:
         Result: содержит в себе
 
         атрибуты Result:
@@ -61,9 +61,7 @@ def validate_module(
     module_data: ModuleType = result_import.data
 
     if not hasattr(module_data, name):
-        return fail(
-            code="Invalide module", message=f"{name} not found - {module_data}"
-        )
+        return fail(code="Invalide module", message=f"{name} not found - {module_data}")
 
     response_data = getattr(module_data, f"{name}")
 
@@ -71,9 +69,7 @@ def validate_module(
         response_data.model_fields.keys()
     )  # получаем множество из имен полей модели
     result_data = required_field_modules.difference(modules_set)
-    if (
-        result_data
-    ):  # если осталось хоть одно поле значит его нет в загруженной модели
+    if result_data:  # если осталось хоть одно поле значит его нет в загруженной модели
         return fail(
             code="Invalide module",
             message=f"Invalide module settings : {result_data} missing",
