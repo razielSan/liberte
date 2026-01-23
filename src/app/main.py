@@ -21,7 +21,6 @@ def main() -> None:
         try:
             ctx = create_app_context()
             ContextRuntime.init(ctx)
-
         except Exception as err:
             print("FATAL: Ошибка при создание логов")
             print(err)
