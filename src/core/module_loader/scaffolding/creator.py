@@ -8,7 +8,8 @@ from core.error_handlers.helpers import ok, fail
 from core.contracts.constants import (
     DEFAULT_CHILD_SEPARATOR,
     DEFAULT_NAME_OF_THE_ROUTER_FOLDER,
-    DEFAULT_NAME_SETTINGS
+    DEFAULT_NAME_SETTINGS,
+    RESERVED_NAMES,
 )
 from core.contracts.templates import TEMPLATE_DIRS, TEMPLATE_FILES
 from core.contracts.module import REQUIRED_FIELDS_MODULES
@@ -39,6 +40,7 @@ def create_module(
     template_dirs: Dict = TEMPLATE_DIRS,
     template_files: Dict = TEMPLATE_FILES,
     requiered_field_modul: RequiredFieldsModulSettings = RequiredFieldsModulSettings,
+    reservied_names: set = RESERVED_NAMES,
 ) -> Result:
     """
     Создает модуль и все вложенные модули
@@ -103,6 +105,7 @@ def create_module(
         root_dir / root_package.replace(".", "/") / f"/{separator}/".join(list_modules)
     )
 
+
     parent_name: str = list_modules[0]  # родительское имя модуля
     full_name = None
     log_name = None
@@ -110,6 +113,12 @@ def create_module(
     module_path = None
     created_paths: List = []
     for index, name in enumerate(list_modules, start=1):
+
+        if name in reservied_names:
+            raise RuntimeError(
+                f"Имя модуля {name} уже используется системой и не может быть использовано"
+            )
+
         if index == 1:  # если родительский модуль
             log_name: str = name
             full_name: str = name
@@ -175,8 +184,7 @@ def create_module(
             save_delete_data(list_path=created_paths)  # удаляем созданые папки и файлы
             return result_validate_structure
         result_validate_settings_file = validate_module_settings_file(
-            path=module_path,
-            name=DEFAULT_NAME_SETTINGS
+            path=module_path, name=DEFAULT_NAME_SETTINGS
         )
         if not result_validate_settings_file.ok:
             save_delete_data(list_path=created_paths)  # удаляем созданые папки и файлы
