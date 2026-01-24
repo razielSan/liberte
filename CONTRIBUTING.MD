@@ -6,11 +6,15 @@
 
 ## Development setup
 
-</pre>pip install -e .[dev]</pre>
+```bash
+pip install -e .[dev]
+```
 
 ## Testing
 
-<pre>pytest tests</pre>
+```bash
+pytest tests
+```
 
 ## Code Style
 

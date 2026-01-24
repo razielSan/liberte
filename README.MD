@@ -41,7 +41,7 @@ cd liberte
 ### 3. Создание виртуального окружения
 
 ```bash
-python -m venv venv<br>
+python -m venv venv
 source venv/bin/activate      # Linux/MacOS
 venv\Scripts\activate         # Windows
 ```
