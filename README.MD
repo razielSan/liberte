@@ -63,33 +63,33 @@ venv\Scripts\activate         # Windows<br></pre>
 
 ├── src/<br>
 │    ├──app/ # папка с приложением<br>
-│    │    ├── bot/<br> # реализация бота
-│    │    │   ├──core/
-│    │    │   └──modules/
-│    │    │   extentsions..py
-│    │    │   main.py
-│    │    │   settings.py
+│    │    ├── bot/ # реализация бота<br>
+│    │    │   ├──core/<br>
+│    │    │   └──modules/<br>
+│    │    │   extentsions..py<br>
+│    │    │   main.py<br>
+│    │    │   settings.py<br>
 │    │    │   
 │    │    ├── app_utils/<br>
 │    │    └── core/<br>
-│    │    main.py
-│    │    settings.py
-│    │    
-│    └──core/ # ядро проекта
-│         ├── context/
-│         ├── contracts/
-│         ├── error_handlers/
-│         ├── logging/
-│         ├── module_loader/
-│         ├── paths/
-│         ├── context/
-│         ├── response/
-│         ├── scripts/
-│         └── utils/
-│         cli.py
-│
-├──docs/
-└──tests/
+│    │    main.py<br>
+│    │    settings.py<br>
+│    │    <br>
+│    └──core/ # ядро проекта<br>
+│         ├── context/<br>
+│         ├── contracts/<br>
+│         ├── error_handlers/<br>
+│         ├── logging/<br>
+│         ├── module_loader/<br>
+│         ├── paths/<br>
+│         ├── context/<br>
+│         ├── response/<br>
+│         ├── scripts/<br>
+│         └── utils/<br>
+│         cli.py<br>
+│<br>
+├──docs/<br>
+└──tests/<br>
 CONTRIBUTING.MD<br>
 LICENSE<br>
 pyproject.toml<br>
@@ -191,19 +191,19 @@ async def test(message, get_main_keyboards)
 
 Пример модуля
 
-music/
-  ├─ handlers/ 
-  ├─ api/ 
-  ├─ fsm/ 
-  ├─ services/ 
-  ├─ utils/
-  ├─ services/
-  ├─ childes/
-  │  └─ playlist/
-  router.py
-  settings.py
-  response.py
-  extensions.py
+music/<br>
+  ├─ handlers/<br>
+  ├─ api/<br>
+  ├─ fsm/<br> 
+  ├─ services/<br> 
+  ├─ utils/<br>
+  ├─ services/<br>
+  ├─ childes/<br>
+  │  └─ playlist/<br>
+  router.py<br>
+  settings.py<br>
+  response.py<br>
+  extensions.py<br>
 
 # 🧪 Tests
 
