@@ -1,6 +1,6 @@
 # liberte
 
-**Modular Telegram Bot Framework based on aiogram.**
+**Mini framework based on aiogram".**
 
 liberte — это расширяемый мини-фреймворк для создания Telegram-ботов
 с модульной архитектурой, CLI и автоматической загрузкой модулей.
@@ -21,26 +21,34 @@ liberte — это расширяемый мини-фреймворк для с�
 
 Проверка;
 
-<pre>python --version</pre>
+```bash
+python --version
+```
 
 
 ### 2. Клонирования репозитория
 
-<pre>git clone https://github.com/razielSan/liberte.git
-cd liberte</pre>
+```bash
+git clone https://github.com/razielSan/liberte.git
+cd liberte
+```
 
 ### 3. Создание виртуального окружения
 
-<pre>python -m venv venv<br>
+```bash
+python -m venv venv<br>
 source venv/bin/activate      # Linux/MacOS<br>
 venv\Scripts\activate         # Windows<br></pre>
+```
 
 
 ### 4. Установка зависимостей 
 
 Из корневой директории
 
-<pre>pip install -e .[dev]</pre>
+```bash
+pip install -e .[dev]
+```
 
 ### 5. Настройка файла .env
 
@@ -52,60 +60,69 @@ venv\Scripts\activate         # Windows<br></pre>
 
 .env
 
-<pre>TOKEN=YOUR_TOKEN</pre>
+```bash
+TOKEN=YOUR_TOKEN
+```
 
 
 ### 6. Запуск бота
 
-<pre>bot</pre>
+```bash
+bot
+```
 
 ## 📁 Структура проекта
 
-├── src/<br>
-│    ├──app/ # папка с приложением<br>
-│    │    ├── bot/ # реализация бота<br>
-│    │    │   ├──core/<br>
-│    │    │   └──modules/<br>
-│    │    │   extentsions..py<br>
-│    │    │   main.py<br>
-│    │    │   settings.py<br>
+```text
+├── src/
+│    ├──app/ # папка с приложением
+│    │    ├── bot/ # реализация бота
+│    │    │   ├──core/
+│    │    │   └──modules/
+│    │    │   extentsions..py
+│    │    │   main.py
+│    │    │   settings.py
 │    │    │   
-│    │    ├── app_utils/<br>
-│    │    └── core/<br>
-│    │    main.py<br>
-│    │    settings.py<br>
-│    │    <br>
-│    └──core/ # ядро проекта<br>
-│         ├── context/<br>
-│         ├── contracts/<br>
-│         ├── error_handlers/<br>
-│         ├── logging/<br>
-│         ├── module_loader/<br>
-│         ├── paths/<br>
-│         ├── context/<br>
-│         ├── response/<br>
-│         ├── scripts/<br>
-│         └── utils/<br>
-│         cli.py<br>
-│<br>
-├──docs/<br>
-└──tests/<br>
-CONTRIBUTING.MD<br>
-LICENSE<br>
-pyproject.toml<br>
-pytest.ini<br>
-README.MD<br>
-
+│    │    ├── app_utils/
+│    │    └── core/
+│    │    main.py
+│    │    settings.py
+│    │    
+│    └──core/ # ядро проекта
+│          ├── context/
+│          ├── contracts/
+│          ├── error_handlers/
+│          ├── logging/
+│          ├── module_loader/
+│          ├── paths/
+│          ├── context/
+│          ├── response/
+│          ├── scripts/
+│          └── utils/
+│          cli.py
+│
+├──docs/
+└──tests/
+CONTRIBUTING.MD
+LICENSE
+pyproject.toml
+pytest.ini
+README.MD
+```
 
 ## 🛠 CLI Usage
 
 **Создание модулей**
 
-<pre>cli add-module test.test</pre>
+```bash
+cli add-module test.test
+```
 
 **Удаление модуля**
 
-<pre>cli remove-module test</pre>
+```bash
+cli remove-module test
+```
 
 ## Особенности создания и использования модулей
 
@@ -115,7 +132,9 @@ README.MD<br>
   **быть 'router', другие имена не допускаются**
   Имя `router` используется системой загрузки модулей и является зарезервированным.
 
-  <pre>router = Router(name=__name__)</pre>
+  ```python
+  router = Router(name=__name__)
+  ```
   
 - Если у модуля есть дочерние модули (`childes`), система автоматически формирует 
   inline-клавиатуру для перехода к ним. Кнопки создаются на основе `settings` 
@@ -125,30 +144,34 @@ README.MD<br>
   родительского модуля через settings.MENU_CALLBACK_DATA, находящийся в файле settings.py
   дочернего модуля.Подключайте как вам удобнее
 
-  <pre>@router.callback_query(F.data == settings.MENU_CALLBACK_DATA)
+  ```python
+  @router.callback_query(F.data == settings.MENU_CALLBACK_DATA)
   asyn def childe_test_module():
-    ...</pre>
+    ...
+  ```
 
 - Родительские модули автоматически прикрепляются к main модулю при их создании.
   По умолчанию, предпологается что родительский модуль можно подключить к main модулю
   через settings.MENU_REPLY_TEXT, находящийся в файле settings.py родительского модуля
   Подключайте как вам удобнее
   
-  <pre>@router.message(F.text == settings.MENU_REPLY_TEXT)
+  ```python
+  @router.message(F.text == settings.MENU_REPLY_TEXT)
   asyn def parent_test_module():
-    ...</pre>
-
+    ...
+  ```
 - Файлы response.py, router.py изменять не рекомендуется. При их изменении
   стабильность приложения не гарантируется. Вносите изменения на свой страх и риск
 
 - В классе ModuleSettings не удаляйте ни одно из полей и не изменяйте имя переменной settings.
   **Можно изменять значения следующих полей**
 
+  ```python
   class MainRouterSettings(BaseModel):
     MENU_REPLY_TEXT: str = "main" 
     MENU_CALLBACK_TEXT: str = "main"
     MENU_CALLBACK_DATA: str = "main"
-
+  ```
   Можно так же добавлять новые поля и наследоваться от BaseSettings.
 
 - Таким образом, родительские модули работают через **reply-кнопки**,  
@@ -167,15 +190,19 @@ README.MD<br>
 
 ### 1. session - асинхронная сессия для запроса
 
-<pre>@router.message(F.text == "test)
+```python
+@router.message(F.text == "test)
 async def test(message, session):
-        ....</pre>
+        ....
+```
 
 ### 2. get_main_keyboards - главная reply клавиатура модуля с кнопками родительских модулей
 
-<pre>@router.message(F.text == "test")
-async def test(message, get_main_keyboards)
-    await message.answer(text="Главное меню", reply_markup=get_main_keyboards)</pre>
+```python
+@router.message(F.text == "test")
+async def test(message, get_main_keyboards):
+    await message.answer(text="Главное меню", reply_markup=get_main_keyboards)
+```
 
 ## 🧩 Modules
 
@@ -191,19 +218,21 @@ async def test(message, get_main_keyboards)
 
 Пример модуля
 
-music/<br>
-  ├─ handlers/<br>
-  ├─ api/<br>
-  ├─ fsm/<br> 
-  ├─ services/<br> 
-  ├─ utils/<br>
-  ├─ services/<br>
-  ├─ childes/<br>
-  │  └─ playlist/<br>
-  router.py<br>
-  settings.py<br>
-  response.py<br>
-  extensions.py<br>
+```text
+music/
+  ├─ handlers/
+  ├─ api/
+  ├─ fsm/
+  ├─ services/ 
+  ├─ utils/
+  ├─ services/
+  ├─ childes/
+  │  └─ playlist/
+  router.py
+  settings.py
+  response.py
+  extensions.py
+```
 
 # 🧪 Tests
 
